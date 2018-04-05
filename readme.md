@@ -12,13 +12,19 @@ Features
 - Display current flow routes in configuration
 - Display current active flow routes in inetflow.0 table
 
+## Requirements ##
+
+- Linux Box (Centos 7)
+  + 1 CPU
+  + 1G RAM
+- Python 2.7
+- Working internet connection 
+  + WebUI loads needed javascript libraries and CSS files from CDN
+
 ## Installation ##
 
-![Screen_Shot_2018-04-05_at_11.18.50](/uploads/9dc1f9063ca44f3c5be07cc9f48f92dc/Screen_Shot_2018-04-05_at_11.18.50.png)
-
-![Screen_Shot_2018-04-05_at_11.18.35](/uploads/da39dbbac9843143cf2d1bbbdf88f1b6/Screen_Shot_2018-04-05_at_11.18.35.png)
-
 - Get `Centos 7` box ready
+  + http://isoredirect.centos.org/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1708.iso
 - Log into to Centos 7 box via SSH
 - Install required packages 
 ```bash
@@ -50,4 +56,13 @@ dev_user: root
 ```
 - Start tool with python2.7 main.py
 - Access WebUi URL `<IP>:8080`
-    
+
+## WebUI ##
+
+![Screen_Shot_2018-04-05_at_23.09.28](/uploads/3427b8741cf4e83a51485761c108b7e4/Screen_Shot_2018-04-05_at_23.09.28.png)
+
+![Screen_Shot_2018-04-05_at_23.09.20](/uploads/2cfe6986c306501b75531875ade4b051/Screen_Shot_2018-04-05_at_23.09.20.png)
+
+![Screen_Shot_2018-04-05_at_11.18.50](/uploads/9dc1f9063ca44f3c5be07cc9f48f92dc/Screen_Shot_2018-04-05_at_11.18.50.png)
+
+![Screen_Shot_2018-04-05_at_11.18.35](/uploads/da39dbbac9843143cf2d1bbbdf88f1b6/Screen_Shot_2018-04-05_at_11.18.35.png)
