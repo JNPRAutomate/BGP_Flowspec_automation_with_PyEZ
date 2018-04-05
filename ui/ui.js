@@ -67,15 +67,29 @@ $(document).ready(function () {
             "dataSrc": function (response) {
                 var return_data = new Array();
                 $.each( response[1], function( key, flow ) {
-                    return_data.push({
-                        'name': key,
-                        'dstPrefix': flow.dstPrefix,
-                        'dstPort': flow.dstPort,
-                        'srcPrefix': flow.srcPrefix,
-                        'srcPort': flow.srcPort,
-                        'protocol': flow.protocol,
-                        'action': flow.action
-                    })
+
+                    if (flow.action['action']['value'][0]){
+                        return_data.push({
+                            'name': key,
+                            'dstPrefix': flow.dstPrefix,
+                            'dstPort': flow.dstPort,
+                            'srcPrefix': flow.srcPrefix,
+                            'srcPort': flow.srcPort,
+                            'protocol': flow.protocol,
+                            'action': flow.action['action']
+                        })
+
+                    } else {
+                        return_data.push({
+                            'name': key,
+                            'dstPrefix': flow.dstPrefix,
+                            'dstPort': flow.dstPort,
+                            'srcPrefix': flow.srcPrefix,
+                            'srcPort': flow.srcPort,
+                            'protocol': flow.protocol,
+                            'action': flow.action['action']['name']
+                        })
+                    }
                 });
                 return return_data;
             }
@@ -198,7 +212,6 @@ function flowRouteAddNewConfigEventHandler(){
         data.action = $('#selectAction').val();
 
         addNewFlowRouteConfig(data);
-        $("#t_flow_config").DataTable().ajax.reload();
     });
 }
 
@@ -207,7 +220,6 @@ function flowRouteDelBtnEventHandler(){
     $('#flowDelBtn').click( function () {
         var table = $('#t_flow_config').DataTable();
         var rowData = table.row( '.selected' ).data();
-        table.row('.selected').remove().draw( false );
         delFlowRouteConfig(rowData.name);
     });
 }
@@ -223,6 +235,16 @@ function addNewFlowRouteConfig(flowRouteData) {
         dataType: 'json',
         contentType: 'application/json',
         success: function (response) {
+
+            if (response[0]){
+
+                $("#t_flow_config").DataTable().ajax.reload();
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_SUCCESS,
+                    title: 'Successfully added new flow route',
+                    message: response[1]
+                })
+            }
         },
         error : function (data, errorText) {
             $("#errormsg").html(errorText).show();
@@ -241,6 +263,17 @@ function delFlowRouteConfig(flowRouteName){
         dataType: 'json',
         contentType: 'application/json',
         success: function (response) {
+
+            if (response[0]){
+
+                var table = $('#t_flow_config').DataTable();
+                table.row('.selected').remove().draw( false );
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_SUCCESS,
+                    title: 'Successfully deletd flow route',
+                    message: response[1]
+                })
+            }
         },
         error : function (data, errorText) {
             $("#errormsg").html(errorText).show();

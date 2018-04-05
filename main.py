@@ -22,6 +22,7 @@ import os.path
 import cherrypy
 import hashlib
 import datetime
+import pprint
 
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
@@ -45,6 +46,25 @@ class MyDev(object):
         #                  loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
         # template = env.get_template('set-flow-route.conf')
 
+        '''
+        { u'test123': { u'match': { u'destination': u'1.1.1.1/32',
+                            u'destination-port': [u'2222'],
+                            u'protocol': [u'tcp'],
+                            u'source': u'2.2.2.1/32',
+                            u'source-port': [u'1111']},
+                u'name': u'test123',
+                u'then': { u'discard': [None]}},
+  u'test124': { u'match': { u'destination': u'1.1.1.1/32',
+                            u'destination-port': [u'2222'],
+                            u'protocol': [u'udp'],
+                            u'source': u'2.2.2.1/32',
+                            u'source-port': [u'1111']},
+                u'name': u'test124',
+                u'then': { u'discard': [None]}}}
+        :param flowData:
+        :return:
+        '''
+
         with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
             cu = Config(dev)
             cu.lock()
@@ -65,8 +85,8 @@ class MyDev(object):
             cu.load(template_path='template/delete-flow-route.conf', template_vars=flowRoute, merge=True)
             cu.commit()
             cu.unlock()
+
         self.flow_config.pop(flowRoute['flowRouteName'], None)
-        self.cleanupActiveFlow()
 
     def getFlowRoutesConfig(self):
         return self.flow_config
@@ -109,28 +129,63 @@ class MyDev(object):
                                                  'status': 'new'}
                 else:
 
+                    if 'term:N/A' in flow['term']:
+                        self.flow_active.pop(hex_dig, None)
+
+                    if _age['current'] > datetime.datetime.strptime(str(self.age_out_interval), '%H:%M:%S').time():
+                        self.flow_active[hex_dig]['status'] = 'old'
+
                     self.flow_active[hex_dig].update({'term': flow.term, 'destination': destination,
                                                       'action': flow.tsi.split(':')[
                                                           1].strip() if flow.tsi else flow.action,
                                                       'age': _age['current'].strftime("%H:%M:%S")})
 
-                    if _age['current'] > datetime.datetime.strptime(str(self.age_out_interval), '%H:%M:%S').time():
-                        self.flow_active[hex_dig]['status'] = 'old'
-
-                    else:
-                        pass
-
         return self.flow_active
 
-    def cleanupActiveFlow(self):
+    def load_flow_config_data(self):
 
-        for key, flow in self.flow_active.iteritems():
+        '''
+        { u'test123': { u'match': { u'destination': u'1.1.1.1/32',
+                            u'destination-port': [u'2222'],
+                            u'protocol': [u'tcp'],
+                            u'source': u'2.2.2.1/32',
+                            u'source-port': [u'1111']},
+                u'name': u'test123',
+                u'then': { u'discard': [None]}},
+          u'test124': { u'match': { u'destination': u'1.1.1.1/32',
+                            u'destination-port': [u'2222'],
+                            u'protocol': [u'udp'],
+                            u'source': u'2.2.2.1/32',
+                            u'source-port': [u'1111']},
+                u'name': u'test124',
+                u'then': { u'discard': [None]}}}
+        :return:
+        '''
 
-            print key
-            print flow
+        with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
+            data = dev.rpc.get_config(options={'format':'json'})
+            _action = dict()
 
-            if 'term:N/A' in flow['term']:
-                self.flow_active.pop(key, None)
+            if 'route' in data['configuration']['routing-options']['flow']:
+
+                for route in data['configuration']['routing-options']['flow']['route']:
+
+                    for key, value in route['then'].iteritems():
+
+                        if '[None]' not in value:
+                            _action['action'] = {'name': key, 'value': value}
+                        else:
+                            _action['action'] = {'name': key, 'value': None}
+
+                    self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'],
+                                                       'srcPrefix': route['match']['source'],
+                                                       'protocol': route['match']['protocol'], 'dstPort': route['match']['destination-port'],
+                                                       'srcPort': route['match']['source-port'], 'action': _action}
+
+            else:
+                print 'no flow routes found'
+
+        #pprint.pprint (self.flow_config, indent=2)
 
     def save_settings(self, dev_user=None, dev_ip=None, dev_pw=None, age_out_interval=None):
 
@@ -228,6 +283,7 @@ if __name__ == '__main__':
     }
 
     my_dev = MyDev()
+    my_dev.load_flow_config_data()
     webapp = BGPFlow()
     webapp.api = BGPFlowWS(my_dev=my_dev)
     webapp.dt = DataTable(my_dev=my_dev)
