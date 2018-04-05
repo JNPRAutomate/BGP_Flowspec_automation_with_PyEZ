@@ -1,0 +1,26 @@
+# $Id$
+# Yaml widgets for BGP flow route data extraction
+# - FlowRoutesTable extracts 'show route table inetflow.0 extensive'
+#    and rt-prefix-length variables are used as class keys()
+#    in format 'term:1' etc.
+# - FlowRoutesView identifies most relevant fields
+#    including destination as NLRI composition, age and action
+---
+FlowRoutesTable:
+ rpc: get-route-information
+ args:
+  extensive: True
+  table: 'inetflow.0'
+ args_key: table
+ item: route-table/rt
+ key: rt-destination
+ view: FlowRoutesView
+
+FlowRoutesView:
+ fields:
+  destination: rt-destination
+  term: rt-prefix-length
+  active: rt-entry/active-tag
+  age: rt-entry/age
+  action: rt-entry/communities/extended-community
+  tsi: tsi

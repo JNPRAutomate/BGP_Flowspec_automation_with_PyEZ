@@ -1,0 +1,27 @@
+.mainheader {
+ color: #575d68;
+}
+
+tr.newRow {
+    background-color: red;
+}
+
+body {
+  padding : 10px ;
+}
+
+.nav-pills>li.active>a,
+.nav-pills>li.active>a:focus,
+.nav-pills>li.active>a:hover {
+   background-color: #bcbfc4;
+}
+
+#exTab1 .tab-content {
+  color : black;
+  background-color: #bcbfc4;
+  padding : 5px 15px;
+}
+
+#exTab1 .nav-pills > li > a {
+  border-radius: 0;
+}

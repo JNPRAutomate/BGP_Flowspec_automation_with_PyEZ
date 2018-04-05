@@ -1,0 +1,243 @@
+<!--
+#
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER
+#
+# Copyright (c) 2018 Juniper Networks, Inc.
+# All rights reserved.
+#
+# Use is subject to license terms.
+#
+# Licensed under the Apache License, Version 2.0 (the ?License?); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BGP Flow Spec Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
+    <link href="ui.css" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="container"><h2 style="text-align:left;float:left;">DevOps against DDoS</h2>
+    <h2 style="text-align:right;float:right;" class="mainheader">Monitoring BGP FlowSpec with Junos PyEZ</h2></div>
+<div id="exTab1" class="container">
+    <ul class="nav nav-pills mynav">
+        <li class="active">
+            <a href="#overview" data-toggle="tab">Overview</a>
+        </li>
+        <li><a href="#flowConfiguration" data-toggle="tab">Flow Configuration</a>
+        </li>
+        <li><a href="#flowActive" data-toggle="tab">Active Flows</a>
+        </li>
+        <li><a href="#settings" data-toggle="tab">Settings</a>
+        </li>
+    </ul>
+    <div class="tab-content clearfix">
+        <div class="tab-pane active" id="overview">
+            <br/>
+            <div class="panel panel-default">
+                <img src="jnpr.png" class="img-rounded img-responsive" alt="Juniper Networks">
+            </div>
+        </div>
+        <div class="tab-pane" id="flowConfiguration">
+            <br/>
+            <div class="panel panel-default">
+                <div class="panel-heading"><h3>Flow Configuration</h3></div>
+                <div class="panel-body">
+                    <p>
+                        <button id="flowAddBtn" type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                data-target="#modalFlowAddNew">
+                            <span class="glyphicon glyphicon-plus"></span> Add
+                        </button>
+                        <button id="flowDelBtn" type="button" class="btn btn-primary btn-sm">
+                            <span class="glyphicon glyphicon-minus"></span> Del
+                        </button>
+                    </p>
+                    <br/>
+                    <table id="t_flow_config" class="display" style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Destination Prefix</th>
+                            <th>Source Prefix</th>
+                            <th>Protocol</th>
+                            <th>Destination Port</th>
+                            <th>Source Port</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="flowActive">
+            <br/>
+            <div class="panel panel-default">
+                <div class="panel-heading"><h3>Active Flows</h3></div>
+                <div class="panel-body">
+                    <br/>
+                    <table id="t_active_flow" class="display">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Destination Prefix</th>
+                            <th>Source Prefix</th>
+                            <th>Protocol</th>
+                            <th>Destination Port</th>
+                            <th>Source Port</th>
+                            <th>Action</th>
+                            <th>Age</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="settings">
+            <br/>
+            <div class="panel panel-default">
+                <div class="panel-heading"><h3>Settings</h3></div>
+                <div class="panel-body">
+                    <div class="form-group row">
+                        <label for="inputDevUser" class="col-sm-2 col-form-label">Device User</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="inputDevUser" placeholder="root">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputDevIP" class="col-sm-2 col-form-label">Device IP</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="inputDevIP" placeholder="10.11.111.120">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputDevPassword" class="col-sm-2 col-form-label">Device Password</label>
+                        <div class="col-sm-3">
+                            <input type="password" class="form-control" id="inputDevPassword">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputPollInterval" class="col-sm-2 col-form-label">Poll Interval</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="inputPollInterval" value="5000">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputAgeOutInterval" class="col-sm-2 col-form-label">Age out timer</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="inputAgeOutInterval" value="00:03:00">
+                        </div>
+                    </div>
+                    <p>
+                        <button id="saveDevSettingsBtn" type="button" class="btn btn-primary btn-sm">
+                            Save Settings
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalFlowAddNew" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add new flow route</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group row">
+                        <label for="inputFlowRouteName" class="col-sm-4 col-form-label">Flow Route Name</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="inputFlowRouteName"
+                                   placeholder="My New Flow Route">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputSrcPrefix" class="col-sm-4 col-form-label">Source Prefix</label>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" id="inputSrcPrefix" placeholder="1.1.1.1/32">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputSrcPort" class="col-sm-4 col-form-label">Source Port</label>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" id="inputSrcPort" placeholder="8080">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputDstPrefix" class="col-sm-4 col-form-label">Destination Prefix</label>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" id="inputDstPrefix" placeholder="2.2.2.2/32">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="inputDstPort" class="col-sm-4 col-form-label">Destination Port</label>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" id="inputDstPort" placeholder="8080">
+                        </div>
+                    </div>
+                    <div class="form-group row" id="fg_protocol">
+                        <label for="selectProtocol" class="col-sm-4 col-form-label">Protocol</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="selectProtocol">
+                                <option>tcp</option>
+                                <option>udp</option>
+                                <option>icmp</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row" id="fg_action">
+                        <label for="selectAction" class="col-sm-4 col-form-label">Action</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="selectAction">
+                                <option>accept</option>
+                                <option>discard</option>
+                                <option>community</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAddFlowRoute">Add</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous">
+</script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="ui.js"></script>
+</body>
+</html>
