@@ -27,12 +27,14 @@ Features
   + http://isoredirect.centos.org/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1708.iso
 - Log into to Centos 7 box via SSH
 - Install required packages 
+
 ```bash
 yum install python-devel libxml2-devel libxslt-devel gcc openssl libffi-devel wget curl
 yum groupinstall "Development tools"
 yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel socat dhcp dnsmasq
 ```
 - Install python 2.7
+
 ```bash
 cd /usr/src
 wget https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tgz
@@ -42,12 +44,14 @@ cd Python-2.7.14
 make altinstall
 ```
 - Install BFS Demo Tool
+
 ```bash
 git clone https://git.juniper.net/cklewar/bfs.git
 cd bfs
 pip install -r requirements.txt
 ```
 - Edit `ui/config.yml` and change to settings to fit your environment
+
 ```yaml
 age_out_interval: 00:01:00
 dev_ip: 10.11.111.120
