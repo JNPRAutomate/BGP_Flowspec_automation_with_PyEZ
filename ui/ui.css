@@ -2,6 +2,23 @@
  color: #575d68;
 }
 
+.btn-custom {
+  background-color: hsl(0, 0%, 75%) !important;
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#c9c9c9", endColorstr="#bfbfbf");
+  background-image: -khtml-gradient(linear, left top, left bottom, from(#c9c9c9), to(#bfbfbf));
+  background-image: -moz-linear-gradient(top, #c9c9c9, #bfbfbf);
+  background-image: -ms-linear-gradient(top, #c9c9c9, #bfbfbf);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #c9c9c9), color-stop(100%, #bfbfbf));
+  background-image: -webkit-linear-gradient(top, #c9c9c9, #bfbfbf);
+  background-image: -o-linear-gradient(top, #c9c9c9, #bfbfbf);
+  background-image: linear-gradient(#c9c9c9, #bfbfbf);
+  border-color: #bfbfbf #bfbfbf hsl(0, 0%, 74%);
+  color: #333 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.06);
+  -webkit-font-smoothing: antialiased;
+}
+
 tr.newRow {
     background-color: red;
 }

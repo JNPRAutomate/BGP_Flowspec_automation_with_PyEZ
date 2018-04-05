@@ -62,7 +62,7 @@ dev_user: root
 ```
 - Start tool
   + Python binary should be in path if not use `which python2.7` to obtian path info
-  + start with `python2.7 main.py`
+  + Start UI with `python2.7 main.py`
 - Access WebUi URL `<IP>:8080`
 
 ## WebUI ##
