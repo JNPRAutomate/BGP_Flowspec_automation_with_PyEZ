@@ -31,7 +31,7 @@ Features
 ```bash
 yum install python-devel libxml2-devel libxslt-devel gcc openssl libffi-devel wget curl
 yum groupinstall "Development tools"
-yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel socat dhcp dnsmasq
+yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel
 ```
 - Install python 2.7
 
