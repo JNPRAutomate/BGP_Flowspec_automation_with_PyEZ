@@ -26,6 +26,8 @@ $(document).ready(function () {
     });
 
     flowRouteAddNewConfigEventHandler();
+    flowRouteModModalBtnEventHandler();
+    flowRouteModBtnEventHandler();
     flowRouteDelBtnEventHandler();
     saveSettingsBtnEventHandler();
 
@@ -65,31 +67,32 @@ $(document).ready(function () {
             "processData": true,
             "dataType": "json",
             "dataSrc": function (response) {
+
                 var return_data = new Array();
-                $.each( response[1], function( key, flow ) {
 
-                    if (flow.action['action']['value'][0]){
-                        return_data.push({
-                            'name': key,
-                            'dstPrefix': flow.dstPrefix,
-                            'dstPort': flow.dstPort,
-                            'srcPrefix': flow.srcPrefix,
-                            'srcPort': flow.srcPort,
-                            'protocol': flow.protocol,
-                            'action': flow.action['action']
-                        })
+                $.each( response[1], function( name, flow ) {
 
-                    } else {
-                        return_data.push({
-                            'name': key,
-                            'dstPrefix': flow.dstPrefix,
-                            'dstPort': flow.dstPort,
-                            'srcPrefix': flow.srcPrefix,
-                            'srcPort': flow.srcPort,
-                            'protocol': flow.protocol,
-                            'action': flow.action['action']['name']
-                        })
-                    }
+                    var action_val = new Array();
+
+                     $.each( flow.action, function( action, value ) {
+
+                        if (value['value'] === null){
+                            action_val.push([action]);
+
+                        } else {
+                            action_val.push([action, value]);
+                        }
+                     });
+
+                     return_data.push({
+                                'name': name,
+                                'dstPrefix': flow.dstPrefix,
+                                'dstPort': flow.dstPort,
+                                'srcPrefix': flow.srcPrefix,
+                                'srcPort': flow.srcPort,
+                                'protocol': flow.protocol,
+                                'action': action_val
+                            })
                 });
                 return return_data;
             }
@@ -125,7 +128,7 @@ $(document).ready(function () {
             } ]
     });
 
-    $("#t_flow_config tbody").on( 'click', 'tr', function () {
+    $("#t_flow_config tbody").on('click', 'tr', function () {
         if ( $(this).hasClass('selected') ) {
             $(this).removeClass('selected');
         }
@@ -134,6 +137,8 @@ $(document).ready(function () {
             $(this).addClass('selected');
         }
     });
+
+
 
     getActiveFlowRoutes();
 
@@ -215,6 +220,42 @@ function flowRouteAddNewConfigEventHandler(){
     });
 }
 
+function flowRouteModBtnEventHandler(){
+
+    $('#btnModFlowRoute').click( function () {
+
+        var data = new Object();
+
+        data.flowRouteName = $('#inputModFlowRouteName').val();
+        data.srcPrefix = $('#inputModSrcPrefix').val();
+        data.srcPort = $('#inputModSrcPort').val();
+        data.dstPrefix = $('#inputModDstPrefix').val();
+        data.dstPort = $('#inputModDstPort').val();
+        data.protocol = $('#selectModProtocol').val();
+        data.action = $('#selectModAction').val();
+
+        modFlowRouteConfig(data);
+    });
+}
+
+function flowRouteModModalBtnEventHandler(){
+
+    $('#flowModBtn').click( function () {
+
+        var table = $('#t_flow_config').DataTable();
+        var rowData = table.row( '.selected' ).data();
+
+        $("#inputModFlowRouteName").val(rowData.name);
+        $("#inputModDstPrefix").val(rowData.dstPrefix);
+        $("#inputModSrcPrefix").val(rowData.srcPrefix);
+        $("#selectModProtocol").val(rowData.protocol);
+        $("#inputModDstPort").val(rowData.dstPort);
+        $("#inputModSrcPort").val(rowData.srcPort);
+        $("#selectModAction").val(rowData.action);
+        $("#modalFlowMod").modal("toggle");
+    });
+}
+
 function flowRouteDelBtnEventHandler(){
 
     $('#flowDelBtn').click( function () {
@@ -242,6 +283,36 @@ function addNewFlowRouteConfig(flowRouteData) {
                 BootstrapDialog.show({
                     type: BootstrapDialog.TYPE_SUCCESS,
                     title: 'Successfully added new flow route',
+                    message: response[1]
+                })
+            }
+        },
+        error : function (data, errorText) {
+            $("#errormsg").html(errorText).show();
+        }
+    });
+}
+
+function modFlowRouteConfig(flowRouteData) {
+
+    $.ajax({
+        url: '/api?action=mod',
+        type: 'POST',
+        data: JSON.stringify(flowRouteData),
+        cache: false,
+        processData: true,
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function (response) {
+
+            console.log(response);
+
+            if (response[0]){
+
+                $("#t_flow_config").DataTable().ajax.reload();
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_SUCCESS,
+                    title: 'Successfully modified flow route',
                     message: response[1]
                 })
             }

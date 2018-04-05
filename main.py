@@ -22,7 +22,7 @@ import os.path
 import cherrypy
 import hashlib
 import datetime
-import pprint
+import yaml
 
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
@@ -33,10 +33,10 @@ class MyDev(object):
 
     def __init__(self):
 
-        self.dev_user = 'root'
-        self.dev_ip = '10.11.111.120'
-        self.dev_pw = 'juniper123'
-        self.age_out_interval = '00:10:00'
+        self.dev_user = None
+        self.dev_ip = None
+        self.dev_pw = None
+        self.age_out_interval = None
         self.flow_active = dict()
         self.flow_config = dict()
 
@@ -45,25 +45,6 @@ class MyDev(object):
         # env = Environment(autoescape=False,
         #                  loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
         # template = env.get_template('set-flow-route.conf')
-
-        '''
-        { u'test123': { u'match': { u'destination': u'1.1.1.1/32',
-                            u'destination-port': [u'2222'],
-                            u'protocol': [u'tcp'],
-                            u'source': u'2.2.2.1/32',
-                            u'source-port': [u'1111']},
-                u'name': u'test123',
-                u'then': { u'discard': [None]}},
-  u'test124': { u'match': { u'destination': u'1.1.1.1/32',
-                            u'destination-port': [u'2222'],
-                            u'protocol': [u'udp'],
-                            u'source': u'2.2.2.1/32',
-                            u'source-port': [u'1111']},
-                u'name': u'test124',
-                u'then': { u'discard': [None]}}}
-        :param flowData:
-        :return:
-        '''
 
         with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
             cu = Config(dev)
@@ -77,6 +58,22 @@ class MyDev(object):
                                                        'protocol': flowData['protocol'], 'dstPort': flowData['dstPort'],
                                                        'srcPort': flowData['srcPort'], 'action': flowData['action']}
 
+    def modFlowRoute(self, flowData=None):
+
+        with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
+            cu = Config(dev)
+            cu.lock()
+            cu.load(template_path='template/mod-flow-route.conf', template_vars=flowData)
+            cu.commit()
+            cu.unlock()
+
+        self.flow_config[flowData['flowRouteName']] = {'dstPrefix': flowData['dstPrefix'],
+                                                       'srcPrefix': flowData['srcPrefix'],
+                                                       'protocol': flowData['protocol'], 'dstPort': flowData['dstPort'],
+                                                       'srcPort': flowData['srcPort'], 'action': flowData['action']}
+
+        print self.flow_config[flowData['flowRouteName']]['dstPort']
+
     def delFlowRoute(self, flowRoute=None):
 
         with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
@@ -87,9 +84,6 @@ class MyDev(object):
             cu.unlock()
 
         self.flow_config.pop(flowRoute['flowRouteName'], None)
-
-    def getFlowRoutesConfig(self):
-        return self.flow_config
 
     def getActiveFlowRoutes(self):
 
@@ -144,48 +138,31 @@ class MyDev(object):
 
     def load_flow_config_data(self):
 
-        '''
-        { u'test123': { u'match': { u'destination': u'1.1.1.1/32',
-                            u'destination-port': [u'2222'],
-                            u'protocol': [u'tcp'],
-                            u'source': u'2.2.2.1/32',
-                            u'source-port': [u'1111']},
-                u'name': u'test123',
-                u'then': { u'discard': [None]}},
-          u'test124': { u'match': { u'destination': u'1.1.1.1/32',
-                            u'destination-port': [u'2222'],
-                            u'protocol': [u'udp'],
-                            u'source': u'2.2.2.1/32',
-                            u'source-port': [u'1111']},
-                u'name': u'test124',
-                u'then': { u'discard': [None]}}}
-        :return:
-        '''
-
         with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
-            data = dev.rpc.get_config(options={'format':'json'})
-            _action = dict()
+            data = dev.rpc.get_config(options={'format': 'json'})
 
             if 'route' in data['configuration']['routing-options']['flow']:
 
                 for route in data['configuration']['routing-options']['flow']['route']:
+                    _action = dict()
 
                     for key, value in route['then'].iteritems():
 
-                        if '[None]' not in value:
-                            _action['action'] = {'name': key, 'value': value}
+                        if value[0]:
+                            _action[key] = {'value': value}
                         else:
-                            _action['action'] = {'name': key, 'value': None}
+                            _action[key] = {'value': None}
 
                     self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'],
                                                        'srcPrefix': route['match']['source'],
-                                                       'protocol': route['match']['protocol'], 'dstPort': route['match']['destination-port'],
+                                                       'protocol': route['match']['protocol'],
+                                                       'dstPort': route['match']['destination-port'],
                                                        'srcPort': route['match']['source-port'], 'action': _action}
 
-            else:
-                print 'no flow routes found'
+                return self.flow_config
 
-        #pprint.pprint (self.flow_config, indent=2)
+            else:
+                return None
 
     def save_settings(self, dev_user=None, dev_ip=None, dev_pw=None, age_out_interval=None):
 
@@ -193,6 +170,21 @@ class MyDev(object):
         self.dev_ip = dev_ip
         self.dev_pw = dev_pw
         self.age_out_interval = age_out_interval
+
+        with open('ui/config.yml', 'w') as fp:
+            config = {'dev_user': self.dev_user, 'dev_ip': self.dev_ip, 'dev_pw': self.dev_pw,
+                      'age_out_interval': self.age_out_interval}
+            yaml.safe_dump(config, fp, default_flow_style=False)
+
+    def load_settings(self):
+
+        with open('ui/config.yml', 'r') as fp:
+            _config = fp.read()
+            config = yaml.safe_load(_config)
+            self.dev_user = config['dev_user']
+            self.dev_ip = config['dev_ip']
+            self.dev_pw = config['dev_pw']
+            self.age_out_interval = config['age_out_interval']
 
 
 class BGPFlow(object):
@@ -237,6 +229,11 @@ class BGPFlowWS(object):
                                       dev_ip=input_json['ip'], age_out_interval=input_json['age_out_interval'])
             return True, 'Saved settings'
 
+        elif action == 'mod':
+            input_json = cherrypy.request.json
+            self.my_dev.modFlowRoute(flowData=input_json)
+            return True, 'Modified flow route'
+
         elif action == 'del':
             input_json = cherrypy.request.json
             self.my_dev.delFlowRoute(flowRoute=input_json)
@@ -255,7 +252,7 @@ class DataTable(object):
 
     @cherrypy.tools.json_out()
     def POST(self):
-        froutes = self.my_dev.getFlowRoutesConfig()
+        froutes = self.my_dev.load_flow_config_data()
         return True, froutes
 
 
@@ -283,7 +280,7 @@ if __name__ == '__main__':
     }
 
     my_dev = MyDev()
-    my_dev.load_flow_config_data()
+    my_dev.load_settings()
     webapp = BGPFlow()
     webapp.api = BGPFlowWS(my_dev=my_dev)
     webapp.dt = DataTable(my_dev=my_dev)

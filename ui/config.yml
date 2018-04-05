@@ -1,0 +1,4 @@
+age_out_interval: 00:01:00
+dev_ip: 10.11.111.120
+dev_pw: juniper123
+dev_user: root
