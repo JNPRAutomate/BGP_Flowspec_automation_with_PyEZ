@@ -72,8 +72,6 @@ class MyDev(object):
                                                        'protocol': flowData['protocol'], 'dstPort': flowData['dstPort'],
                                                        'srcPort': flowData['srcPort'], 'action': flowData['action']}
 
-        print self.flow_config[flowData['flowRouteName']]['dstPort']
-
     def delFlowRoute(self, flowRoute=None):
 
         with Device(host=self.dev_ip, user=self.dev_user, password=self.dev_pw) as dev:
