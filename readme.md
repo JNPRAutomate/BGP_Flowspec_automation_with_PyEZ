@@ -56,19 +56,20 @@ pip2.7 install -r requirements.txt
 
 ```yaml
 age_out_interval: 00:01:00
-dev_ip: 10.11.111.120
 dev_pw: juniper123
 dev_user: root
-asbrs:
-  - asbr1:
+routers:
+  - rt1:
+      type: rr
+      ip: 10.11.111.120
+  - rt2:
+      type: asbr
       ip: 10.11.111.121
-  - asbr2:
-      ip: 10.11.111.122
 ```
 - Start tool
-  + Python binary should be in path if not use `which python2.7` to obtian path info
+  + Python binary should be in path if not use `which python2.7` to obtain path info
   + Start UI with `python2.7 main.py`
-- Access WebUi URL `<IP>:8080`
+- Access WebUI URL `<IP>:8080`
 
 ## WebUI ##
 
