@@ -19,6 +19,8 @@
 #
 */
 
+var interval = 5000;  // 1000 = 1 second, 3000 = 3 seconds
+
 $(document).ready(function () {
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -31,38 +33,10 @@ $(document).ready(function () {
     flowRouteDelBtnEventHandler();
     saveSettingsBtnEventHandler();
 
-    var t_active_flow = $('#t_active_flow').DataTable({
-        "columns": [
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            },
-            {
-                "defaultContent": ""
-            } ]
-    });
-
     var t_flow_config = $('#t_flow_config').DataTable({
         'ajax'       : {
             "type"   : "POST",
-            "url"    : "/dt",
+            "url"    : "/api/frct",
             "contentType": "application/json",
             "processData": true,
             "dataType": "json",
@@ -85,14 +59,14 @@ $(document).ready(function () {
                      });
 
                      return_data.push({
-                                'name': name,
-                                'dstPrefix': flow.dstPrefix,
-                                'dstPort': flow.dstPort,
-                                'srcPrefix': flow.srcPrefix,
-                                'srcPort': flow.srcPort,
-                                'protocol': flow.protocol,
-                                'action': action_val
-                            })
+                        'name': name,
+                        'dstPrefix': flow.dstPrefix,
+                        'dstPort': flow.dstPort,
+                        'srcPrefix': flow.srcPrefix,
+                        'srcPort': flow.srcPort,
+                        'protocol': flow.protocol,
+                        'action': action_val
+                        })
                 });
                 return return_data;
             }
@@ -125,7 +99,159 @@ $(document).ready(function () {
             {
                 "data": "action",
                 "defaultContent": ""
-            } ]
+            }]
+    });
+
+    var t_active_flow = $('#t_active_flow').DataTable({
+
+            'ajax'       : {
+                "type"   : "POST",
+                "url"    : "/api/frt",
+                "contentType": "application/json",
+                "processData": true,
+                "dataType": "json",
+                "dataSrc": function (response) {
+
+                    var return_data = new Array();
+
+                    $.each( response[1], function( key, flow ) {
+
+                        return_data.push({
+                            'router': flow.router,
+                            'term': flow.term,
+                            'dstPrefix': flow.destination[0],
+                            'dstPort': flow.destination[3],
+                            'srcPrefix': flow.destination[1],
+                            'srcPort': flow.destination[4],
+                            'protocol': flow.destination[2],
+                            'krtAction': flow.krtAction,
+                            'commAction': flow.commAction,
+                            'age': flow.age
+                            })
+                    });
+                    return return_data;
+                },
+                "complete": function (response) {
+                    getActiveFlowRoutes(interval);
+                }
+            },
+            "createdRow": function( row, data, dataIndex ) {
+                //console.log(data.age);
+                //console.log($('#inputAgeOutInterval').val());
+                if (data.age <= $('#inputAgeOutInterval').val()) {
+                    $(row).css( 'color', 'red' ).animate( { color: 'black' });
+                    //console.log('date.age is <= AgeOutInterval');
+
+                }else {
+                    //console.log('date.age is > AgeOutInterval');
+                }
+            },
+            "columns": [
+                {
+                    "data": "router",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "term",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "dstPrefix",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "srcPrefix",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "protocol",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "dstPort",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "srcPort",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "krtAction",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "commAction",
+                    "defaultContent": ""
+                },
+                {
+                    "data": "age",
+                    "defaultContent": ""
+                }]
+        });
+
+    var t_active_filter = $('#t_active_filter').DataTable({
+
+        'ajax'       : {
+            "type"   : "POST",
+            "url"    : "/api/frft",
+            "contentType": "application/json",
+            "processData": true,
+            "dataType": "json",
+            "dataSrc": function (response) {
+
+                var return_data = new Array();
+
+                $.each( response[1], function( rname, router ) {
+                    $.each(router, function( fidx, filter ) {
+
+                        return_data.push({
+                            'name': rname,
+                            'dstPrefix': filter.data[0],
+                            'dstPort': filter.data[3],
+                            'srcPrefix': filter.data[1],
+                            'srcPort': filter.data[4],
+                            'protocol': filter.data[2],
+                            'packetCount': filter.packet_count,
+                            'byteCount': filter.byte_count
+                        })
+                    });
+                });
+                return return_data;
+            }
+        },
+        "columns": [
+            {
+                "data": "name",
+                "defaultContent": ""
+            },
+            {
+                "data": "dstPrefix",
+                "defaultContent": ""
+            },
+            {
+                "data": "srcPrefix",
+                "defaultContent": ""
+            },
+            {
+                "data": "protocol",
+                "defaultContent": ""
+            },
+            {
+                "data": "dstPort",
+                "defaultContent": ""
+            },
+            {
+                "data": "srcPort",
+                "defaultContent": ""
+            },
+            {
+                "data": "packetCount",
+                "defaultContent": ""
+            },
+            {
+                "data": "byteCount",
+                "defaultContent": ""
+            }]
     });
 
     $("#t_flow_config tbody").on('click', 'tr', function () {
@@ -138,10 +264,6 @@ $(document).ready(function () {
         }
     });
 
-
-
-    getActiveFlowRoutes();
-
     $('#selectProtocol').on('change', function(){
         var selected = $(this).find("option:selected").val();
 
@@ -149,19 +271,18 @@ $(document).ready(function () {
 
             if ($('#g_icmp').length){
                 $('#g_icmp').remove();
-
             }
 
             var html = "<div id=\"g_icmp\">" +
-                            "<label for=\"inputICMPCode\" class=\"col-sm-1 col-form-label\">Code</label>" +
-                                "<div class=\"col-sm-2\">" +
-                                    "<input type=\"text\" class=\"form-control\" id=\"inputICMPCode\" placeholder=\"Code\">" +
-                                "</div>" +
-                            "<label for=\"inputICMPType\" class=\"col-sm-1 col-form-label\">Type</label>" +
-                                "<div class=\"col-sm-2\">" +
-                                    "<input type=\"text\" class=\"form-control\" id=\"inputICMPType\" placeholder=\"Type\">" +
-                                "</div>" +
-                       "</div>";
+                "<label for=\"inputICMPCode\" class=\"col-sm-1 col-form-label\">Code</label>" +
+                    "<div class=\"col-sm-2\">" +
+                        "<input type=\"text\" class=\"form-control\" id=\"inputICMPCode\" placeholder=\"Code\">" +
+                    "</div>" +
+                "<label for=\"inputICMPType\" class=\"col-sm-1 col-form-label\">Type</label>" +
+                    "<div class=\"col-sm-2\">" +
+                        "<input type=\"text\" class=\"form-control\" id=\"inputICMPType\" placeholder=\"Type\">" +
+                    "</div>" +
+           "</div>";
 
             $('#fg_protocol').append(html);
 
@@ -169,11 +290,8 @@ $(document).ready(function () {
 
             if ($('#g_icmp').length){
                 $('#g_icmp').remove();
-
             }
         }
-
-
     });
 
     $('#selectAction').on('change', function(){
@@ -183,7 +301,6 @@ $(document).ready(function () {
 
             if ($('#g_community').length){
                 $('#g_community').remove();
-
             }
 
             var html = "<div id=\"g_community\"><label for=\"inputDstPort\" class=\"col-sm-2 col-form-label\">Community</label>" +
@@ -285,6 +402,13 @@ function addNewFlowRouteConfig(flowRouteData) {
                     title: 'Successfully added new flow route',
                     message: response[1]
                 })
+            } else {
+
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_WARNING,
+                    title: 'Error adding new flow route',
+                    message: response[1]
+                })
             }
         },
         error : function (data, errorText) {
@@ -341,7 +465,13 @@ function delFlowRouteConfig(flowRouteName){
                 table.row('.selected').remove().draw( false );
                 BootstrapDialog.show({
                     type: BootstrapDialog.TYPE_SUCCESS,
-                    title: 'Successfully deletd flow route',
+                    title: 'Successfully deleted flow route',
+                    message: response[1]
+                })
+            } else {
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_WARNING,
+                    title: 'Failed to delete flow route',
                     message: response[1]
                 })
             }
@@ -352,52 +482,12 @@ function delFlowRouteConfig(flowRouteName){
     });
 }
 
-
-function addActiveFlowRouteToTable(flowData){
-
-    var t = $('#t_active_flow').dataTable().api();
-
-    if ( t.data().any() ) {
-        t.clear().draw();
-
-    } else {}
-
-    $.each( flowData, function( key, flow ) {
-
-        var newRow = t.row.add([
-            flow.term,
-            flow.destination[0],
-            flow.destination[1],
-            flow.destination[2],
-            flow.destination[3],
-            flow.destination[4],
-            flow.action,
-            flow.age
-        ]).draw().node()
-
-        if (flow.status == 'new') {
-            $(newRow).css( 'color', 'red' ).animate( { color: 'black' });
-        }
-    });
-}
-
-function getActiveFlowRoutes(){
-    var interval = 5000;  // 1000 = 1 second, 3000 = 3 seconds
+function getActiveFlowRoutes(interval){
 
     function poll() {
-        $.ajax({
-            type: 'GET',
-            url: '/api?action=active',
-            dataType: 'json',
-            contentType: 'application/json',
-            processData: true,
-            success: function (response) {
-                addActiveFlowRouteToTable(response[1]);
-            },
-            complete: function (data) {
-                    setTimeout(poll, interval);
-            }
-        });
+        var t = $('#t_active_flow').dataTable().api();
+        console.log('polling' + interval);
+        t.ajax.reload()
     }
     setTimeout(poll, interval);
 }
@@ -412,6 +502,7 @@ function saveSettingsBtnEventHandler(){
         data.password = $('#inputDevPassword').val();
         data.ip = $('#inputDevIP').val();
         data.age_out_interval = $('#inputAgeOutInterval').val();
+        inputPollInterval = $('#inputPollInterval').val();
 
         saveSettings(data);
     });

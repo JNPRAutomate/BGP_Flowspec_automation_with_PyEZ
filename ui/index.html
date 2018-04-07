@@ -33,16 +33,18 @@
 </head>
 <body>
 
-<div class="container"><h2 style="text-align:left;float:left;">DevOps against DDoS</h2>
+<div class="container col-sm-9 col-md-8 col-lg-12"><h2 style="text-align:left;float:left;">DevOps against DDoS</h2>
     <h2 style="text-align:right;float:right;" class="mainheader">Monitoring BGP FlowSpec with Junos PyEZ</h2></div>
-<div id="exTab1" class="container">
+<div id="exTab1" class="container col-sm-9 col-md-8 col-lg-12">
     <ul class="nav nav-pills mynav">
         <li class="active">
             <a href="#overview" data-toggle="tab">Overview</a>
         </li>
-        <li><a href="#flowConfiguration" data-toggle="tab">Flow Configuration</a>
+        <li><a href="#flowConfiguration" data-toggle="tab">Static Flow Configuration</a>
         </li>
         <li><a href="#flowActive" data-toggle="tab">Active Flows</a>
+        </li>
+        <li><a href="#filterActive" data-toggle="tab">Active Flow Filters</a>
         </li>
         <li><a href="#settings" data-toggle="tab">Settings</a>
         </li>
@@ -57,7 +59,7 @@
         <div class="tab-pane" id="flowConfiguration">
             <br/>
             <div class="panel panel-default">
-                <div class="panel-heading"><h3>Flow Configuration</h3></div>
+                <div class="panel-heading"><h3>Route Reflector Static Flow Configuration</h3></div>
                 <div class="panel-body">
                     <p>
                         <button id="flowAddBtn" type="button" class="btn btn-primary btn-sm btn-custom" data-toggle="modal"
@@ -96,7 +98,34 @@
                 <div class="panel-heading"><h3>Active Flow Routes</h3></div>
                 <div class="panel-body">
                     <br/>
-                    <table id="t_active_flow" class="display">
+                    <table id="t_active_flow" class="display" style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Router</th>
+                            <th>Name</th>
+                            <th>Destination Prefix</th>
+                            <th>Source Prefix</th>
+                            <th>Protocol</th>
+                            <th>Destination Port</th>
+                            <th>Source Port</th>
+                            <th>KRT Action</th>
+                            <th>Community Action</th>
+                            <th>Age</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="filterActive">
+            <br/>
+            <div class="panel panel-default">
+                <div class="panel-heading"><h3>Active Flow Filter</h3></div>
+                <div class="panel-body">
+                    <br/>
+                    <table id="t_active_filter" class="display" style="width:100%">
                         <thead>
                         <tr>
                             <th>Name</th>
@@ -105,8 +134,8 @@
                             <th>Protocol</th>
                             <th>Destination Port</th>
                             <th>Source Port</th>
-                            <th>Action</th>
-                            <th>Age</th>
+                            <th>Packet Count</th>
+                            <th>Byte Count</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -220,6 +249,7 @@
                             <select class="form-control" id="selectAction">
                                 <option>accept</option>
                                 <option>discard</option>
+                                <option>sample</option>
                                 <option>community</option>
                             </select>
                         </div>
@@ -293,6 +323,7 @@
                             <select class="form-control" id="selectModAction">
                                 <option>accept</option>
                                 <option>discard</option>
+                                <option>sample</option>
                                 <option>community</option>
                             </select>
                         </div>

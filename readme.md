@@ -59,6 +59,11 @@ age_out_interval: 00:01:00
 dev_ip: 10.11.111.120
 dev_pw: juniper123
 dev_user: root
+asbrs:
+  - asbr1:
+      ip: 10.11.111.121
+  - asbr2:
+      ip: 10.11.111.122
 ```
 - Start tool
   + Python binary should be in path if not use `which python2.7` to obtian path info

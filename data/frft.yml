@@ -1,0 +1,20 @@
+# $Id$
+# Yaml widgets for BGP flow filter  data extraction
+# - FlowFilterTable extracts 'show firewall filter __flowspec_default_inet__'
+# - FlowFilterView identifies most relevant filter fields
+#    including counter-name, packet-cpunt and byte-count
+---
+FlowFilterTable:
+ rpc: get-firewall-filter-information
+ args:
+  filtername: __flowspec_default_inet__
+ args_key: filtername
+ item: filter-information/counter
+ key: counter-name
+ view: FlowFilterView
+
+FlowFilterView:
+ fields:
+  name: counter-name
+  packet_count: packet-count
+  byte_count: byte-count

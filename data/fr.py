@@ -17,7 +17,12 @@
 # limitations under the License.
 #
 
+import os
+
 from jnpr.junos.factory import loadyaml
 from os.path import splitext
-_YAML_ = splitext(__file__)[0] + '.yml'
+
+_YAML_ = os.getcwd() + '/data/frt.yml'
+globals().update(loadyaml(_YAML_))
+_YAML_ = os.getcwd() + '/data/frft.yml'
 globals().update(loadyaml(_YAML_))
