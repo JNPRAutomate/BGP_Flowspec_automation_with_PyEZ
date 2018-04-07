@@ -254,10 +254,10 @@ class MyDev(object):
         self.age_out_interval = age_out_interval
         self.routers = routers
 
-        with open('ui/config.yml', 'w') as fp:
-            config = {'dev_user': self.dev_user, 'dev_pw': self.dev_pw, 'routers': self.routers,
-                      'age_out_interval': self.age_out_interval}
-            yaml.safe_dump(config, fp, default_flow_style=False)
+        #with open('ui/config.yml', 'w') as fp:
+        #    config = {'dev_user': self.dev_user, 'dev_pw': self.dev_pw, 'routers': self.routers,
+        #              'age_out_interval': self.age_out_interval}
+        #    yaml.safe_dump(config, fp, default_flow_style=False)
 
     def load_settings(self):
 

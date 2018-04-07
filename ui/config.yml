@@ -1,4 +1,4 @@
-age_out_interval: 00:01:00
+age_out_interval: 00:03:00
 dev_pw: juniper123
 dev_user: root
 routers:
