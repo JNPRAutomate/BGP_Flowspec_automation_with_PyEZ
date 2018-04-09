@@ -131,25 +131,22 @@ class MyDev(object):
 
                         hash_object = hashlib.sha512(b'{0}{1}'.format(str(destination), str(value['ip'])))
                         hex_dig = hash_object.hexdigest()
-
                         _age = dict()
-                        pattern = r'(.*)\s(.*?):(.*?):(.*)'
-                        regex = re.compile(pattern)
-                        age = re.findall(regex, flow.age)
 
-                        if len(age[0]) == 1:
-                            _age['current'] = datetime.timedelta(seconds=int(age[0][3]))
-                        elif len(age[0]) == 2:
-                            _age['current'] = datetime.timedelta(minutes=int(age[0][2]), seconds=int(age[0][3]))
-                        elif len(age[0]) == 3:
-                            _age['current'] = datetime.timedelta(hours=int(age[0][1]),
-                                                                 minutes=int(age[0][2]), seconds=int(age[0][3]))
-                        elif len(age[0]) > 3:
-                            _age['current'] = datetime.timedelta(days=int(age[0][0][:-1]), hours=int(age[0][1]),
-                                                                 minutes=int(age[0][2]), seconds=int(age[0][3]))
+                        if len(flow.age) <= 2:
+                            _age['current'] = datetime.timedelta(seconds=int(flow.age))
+                        elif len(flow.age) ==4 or len(flow.age) == 5:
+                            ms = flow.age.split(':')
+                            _age['current'] = datetime.timedelta(minutes=int(ms[0]), seconds=int(ms[1]))
+                        elif len(flow.age) == 7 or len(flow.age) == 8:
+                            ms = flow.age.split(':')
+                            _age['current'] = datetime.timedelta(hours=int(ms[0]),minutes=int(ms[1]), seconds=int(ms[2]))
                         else:
-                            _age['current'] = None
-                            'error in time format'
+                            pattern = r'(.*)\s(.*?):(.*?):(.*)'
+                            regex = re.compile(pattern)
+                            age = re.findall(regex, flow.age)
+                            _age['current'] = datetime.timedelta(days=int(age[0][0][:-1]), hours=int(age[0][1]),
+                                                                     minutes=int(age[0][2]), seconds=int(age[0][3]))
 
                         pattern = r'([^\s]+)'
                         regex = re.compile(pattern)
