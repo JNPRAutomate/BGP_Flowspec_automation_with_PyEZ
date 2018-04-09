@@ -65,9 +65,11 @@ class MyDev(object):
                 return False, cle.message
 
         self.flow_config[flowRouteData['flowRouteName']] = {'dstPrefix': flowRouteData['dstPrefix'],
-                                                       'srcPrefix': flowRouteData['srcPrefix'],
-                                                       'protocol': flowRouteData['protocol'], 'dstPort': flowRouteData['dstPort'],
-                                                       'srcPort': flowRouteData['srcPort'], 'action': flowRouteData['action']}
+                                                            'srcPrefix': flowRouteData['srcPrefix'],
+                                                            'protocol': flowRouteData['protocol'],
+                                                            'dstPort': flowRouteData['dstPort'],
+                                                            'srcPort': flowRouteData['srcPort'],
+                                                            'action': flowRouteData['action']}
         return True, 'Successfully added new flow route'
 
     def modFlowRoute(self, flowRouteData=None):
@@ -107,6 +109,8 @@ class MyDev(object):
 
     def getActiveFlowRoutes(self):
 
+        t = datetime.datetime.strptime(self.age_out_interval, "%H:%M:%S")
+
         for router in self.routers:
 
             for name, value in router.iteritems():
@@ -129,14 +133,22 @@ class MyDev(object):
                         hex_dig = hash_object.hexdigest()
 
                         _age = dict()
+                        pattern = r'(.*)\s(.*?):(.*?):(.*)'
+                        regex = re.compile(pattern)
+                        age = re.findall(regex, flow.age)
 
-                        if ':' not in flow.age:
-                            _age['current'] = datetime.datetime.strptime(flow.age, '%S').time()
-                        elif len(flow.age.split(':')) == 2:
-                            _age['current'] = datetime.datetime.strptime(flow.age, '%M:%S').time()
-                        elif len(flow.age.split(':')) == 3:
-                            _age['current'] = datetime.datetime.strptime(flow.age, '%H:%M:%S').time()
+                        if len(age[0]) == 1:
+                            _age['current'] = datetime.timedelta(seconds=int(age[0][3]))
+                        elif len(age[0]) == 2:
+                            _age['current'] = datetime.timedelta(minutes=int(age[0][2]), seconds=int(age[0][3]))
+                        elif len(age[0]) == 3:
+                            _age['current'] = datetime.timedelta(hours=int(age[0][1]),
+                                                                 minutes=int(age[0][2]), seconds=int(age[0][3]))
+                        elif len(age[0]) > 3:
+                            _age['current'] = datetime.timedelta(days=int(age[0][0][:-1]), hours=int(age[0][1]),
+                                                                 minutes=int(age[0][2]), seconds=int(age[0][3]))
                         else:
+                            _age['current'] = None
                             'error in time format'
 
                         pattern = r'([^\s]+)'
@@ -163,28 +175,32 @@ class MyDev(object):
 
                             self.flow_active[hex_dig] = {'router': name, 'term': flow.term, 'destination': destination,
                                                          'commAction': commAction, 'krtAction': krt_actions,
-                                                         'age': _age['current'].strftime("%H:%M:%S"),
+                                                         'age': str(_age['current']),
                                                          'hash': hex_dig, 'status': 'new'}
                         else:
 
                             if 'term:N/A' in flow['term']:
                                 self.flow_active.pop(hex_dig, None)
 
-                            if _age['current'] > datetime.datetime.strptime(str(self.age_out_interval),
-                                                                            '%H:%M:%S').time():
-                                self.flow_active[hex_dig]['status'] = 'old'
+                            if _age['current']:
+
+                                if _age['current'] > datetime.timedelta(hours=t.hour, minutes=t.minute,
+                                                                        seconds=t.second):
+                                    self.flow_active[hex_dig]['status'] = 'old'
 
                             try:
                                 if hex_dig in self.flow_active:
                                     self.flow_active[hex_dig].update({'term': flow.term, 'destination': destination,
-                                                                      'commAction': commAction, 'krtAction': krt_actions,
-                                                                      'age': _age['current'].strftime("%H:%M:%S")})
+                                                                      'commAction': commAction,
+                                                                      'krtAction': krt_actions,
+                                                                      'age': str(_age['current'])})
+
                             except KeyError as ke:
                                 return False, ke.message
 
         return True, self.flow_active
 
-    def get_flow_route_filter(self):
+    def getActiveFlowRouteFilter(self):
 
         if self.routers:
 
@@ -207,11 +223,11 @@ class MyDev(object):
                                 data[didx] = _item[1] if len(_item) > 1 else _item[0]
 
                             self.filter_active[name].append({'data': data, 'packet_count': filter.packet_count,
-                                                        'byte_count': filter.byte_count})
+                                                             'byte_count': filter.byte_count})
 
             return True, self.filter_active
 
-    def load_flow_config_data(self):
+    def loadFlowRouteConfig(self):
 
         dev_ip = list()
 
@@ -222,39 +238,90 @@ class MyDev(object):
                 if 'rr' in value['type']:
                     dev_ip.append(value['ip'])
 
-        with Device(host=dev_ip[0], user=self.dev_user, password=self.dev_pw) as dev:
-            data = dev.rpc.get_config(options={'format': 'json'})
+        with Device(host=dev_ip[0], user=self.dev_user, password=self.dev_pw, normalize=True) as dev:
+            version = dev.facts['version'].split('R')[0].split('.')
 
-            if 'route' in data['configuration']['routing-options']['flow']:
+            # Junos 14.1RX does not support json so let's go with XML here
 
-                for route in data['configuration']['routing-options']['flow']['route']:
-                    _action = dict()
+            if int(version[0]) <= 14 and int(version[1]) <= 1:
 
-                    for key, value in route['then'].iteritems():
+                data = dev.rpc.get_config(options={'format': 'xml'}, filter_xml='routing-options/flow')
 
-                        if value[0]:
-                            _action[key] = {'value': value}
-                        else:
-                            _action[key] = {'value': None}
+                for route in data.iter('route'):
+                    my_list = list()
 
-                    self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'],
-                                                       'srcPrefix': route['match']['source'],
-                                                       'protocol': route['match']['protocol'],
-                                                       'dstPort': route['match']['destination-port'],
-                                                       'srcPort': route['match']['source-port'], 'action': _action}
+                    for item in route:
+
+                        if 'name' in item.tag:
+                            my_list.append(item.text)
+                            self.flow_config[item.text] = {}
+
+                        elif 'match' in item.tag:
+                            tag = None
+
+                            for child in item.iterchildren():
+
+                                if 'destination-port' in child.tag:
+                                    tag = 'dstPort'
+                                elif 'source-port' in child.tag:
+                                    tag = 'srcPort'
+                                elif 'destination' in child.tag:
+                                    tag = 'dstPrefix'
+                                elif 'source' in child.tag:
+                                    tag = 'srcPrefix'
+                                elif 'protocol' in child.tag:
+                                    tag = 'protocol'
+
+                                self.flow_config[my_list[0]][tag] = child.text
+
+                        elif 'then' in item.tag:
+
+                            _action = dict()
+
+                            for child in item.iterchildren():
+
+                                for value in child.iter():
+                                    print value.tag, value.text
+                                    _action[child.tag] = {'value': value.text}
+
+                                self.flow_config[my_list[0]]['action'] = _action
+
                 return True, self.flow_config
 
             else:
-                return False, None
+
+                data = dev.rpc.get_config(options={'format': 'json'})
+
+                if 'route' in data['configuration']['routing-options']['flow']:
+
+                    for route in data['configuration']['routing-options']['flow']['route']:
+                        _action = dict()
+
+                        for key, value in route['then'].iteritems():
+
+                            if value[0]:
+                                _action[key] = {'value': value}
+                            else:
+                                _action[key] = {'value': None}
+
+                        self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'],
+                                                           'srcPrefix': route['match']['source'],
+                                                           'protocol': route['match']['protocol'],
+                                                           'dstPort': route['match']['destination-port'],
+                                                           'srcPort': route['match']['source-port'], 'action': _action}
+                    return True, self.flow_config
+
+                else:
+                    return False, self.flow_config
 
     def save_settings(self, dev_user=None, dev_pw=None, routers=None, age_out_interval=None):
 
         self.dev_user = dev_user
         self.dev_pw = dev_pw
         self.age_out_interval = age_out_interval
-        self.routers = routers
+        #self.routers = routers
 
-        #with open('ui/config.yml', 'w') as fp:
+        # with open('ui/config.yml', 'w') as fp:
         #    config = {'dev_user': self.dev_user, 'dev_pw': self.dev_pw, 'routers': self.routers,
         #              'age_out_interval': self.age_out_interval}
         #    yaml.safe_dump(config, fp, default_flow_style=False)
@@ -319,7 +386,7 @@ class BGPFlowWS(object):
 
             input_json = cherrypy.request.json
             self.my_dev.save_settings(dev_user=input_json['user'], dev_pw=input_json['password'],
-                                      dev_ip=input_json['ip'], age_out_interval=input_json['age_out_interval'])
+                                      age_out_interval=input_json['age_out_interval'])
             return True, 'Successfully saved configuration settings'
 
         else:
@@ -346,7 +413,7 @@ class Frtc(object):
 
     @cherrypy.tools.json_out()
     def POST(self):
-        resp = self.my_dev.load_flow_config_data()
+        resp = self.my_dev.loadFlowRouteConfig()
         return resp
 
 
@@ -358,7 +425,7 @@ class Frft(object):
 
     @cherrypy.tools.json_out()
     def POST(self):
-        resp = self.my_dev.get_flow_route_filter()
+        resp = self.my_dev.getActiveFlowRouteFilter()
         return resp
 
 
@@ -402,4 +469,8 @@ if __name__ == '__main__':
     webapp.api.frt = Frt(my_dev=my_dev)
     webapp.api.frct = Frtc(my_dev=my_dev)
     webapp.api.frft = Frft(my_dev=my_dev)
+    cherrypy.config.update({'log.screen': False,
+                            'server.socket_host': '0.0.0.0',
+                            'server.socket_port': 8080,
+                            })
     cherrypy.quickstart(webapp, '/', conf)

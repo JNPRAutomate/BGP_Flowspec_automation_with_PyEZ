@@ -1,9 +1,8 @@
-import os
 import random
 import StringIO
 import pprint
-from tempfile import NamedTemporaryFile
-from jinja2 import Template, Environment, FileSystemLoader
+
+from jinja2 import Environment, FileSystemLoader
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
 from jnpr.junos.exception import ConfigLoadError
@@ -16,7 +15,7 @@ if __name__ == '__main__':
 
         testdata = dict()
         start = 1
-        stop = 2
+        stop = 2001
         step = 1
         protocol = ['tcp', 'udp']
         action = ['accept', 'discard', 'sample']

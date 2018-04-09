@@ -19,7 +19,8 @@
 #
 */
 
-var interval = 5000;  // 1000 = 1 second, 3000 = 3 seconds
+var pollInterval = 5000;  // 1000 = 1 second, 3000 = 3 seconds
+var ageOutInterval = "00:03:00" //H:M:S
 
 $(document).ready(function () {
 
@@ -132,18 +133,15 @@ $(document).ready(function () {
                     return return_data;
                 },
                 "complete": function (response) {
-                    getActiveFlowRoutes(interval);
+                    getActiveFlowRoutes(pollInterval);
                 }
             },
             "createdRow": function( row, data, dataIndex ) {
-                //console.log(data.age);
-                //console.log($('#inputAgeOutInterval').val());
-                if (data.age <= $('#inputAgeOutInterval').val()) {
-                    $(row).css( 'color', 'red' ).animate( { color: 'black' });
-                    //console.log('date.age is <= AgeOutInterval');
 
-                }else {
-                    //console.log('date.age is > AgeOutInterval');
+                if (data.age <= ageOutInterval) {
+                    $(row).css( 'color', 'red' ).animate( { color: 'black' });
+
+
                 }
             },
             "columns": [
@@ -482,14 +480,13 @@ function delFlowRouteConfig(flowRouteName){
     });
 }
 
-function getActiveFlowRoutes(interval){
+function getActiveFlowRoutes(pollInterval){
 
     function poll() {
         var t = $('#t_active_flow').dataTable().api();
-        console.log('polling' + interval);
         t.ajax.reload()
     }
-    setTimeout(poll, interval);
+    setTimeout(poll, pollInterval);
 }
 
 function saveSettingsBtnEventHandler(){
@@ -502,7 +499,7 @@ function saveSettingsBtnEventHandler(){
         data.password = $('#inputDevPassword').val();
         data.ip = $('#inputDevIP').val();
         data.age_out_interval = $('#inputAgeOutInterval').val();
-        inputPollInterval = $('#inputPollInterval').val();
+        pollInterval = $('#inputPollInterval').val();
 
         saveSettings(data);
     });
