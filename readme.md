@@ -20,14 +20,20 @@ Features
 - Python 2.7
 - Working internet connection 
   + WebUI loads needed javascript libraries and CSS files from CDN
+- vMX 
+  + Tested with version 14.1R1 / 17.1R1
 
 ## Installation ##
 All steps should be done as `root` user.
 
 - Get `Centos 7` box ready
   + http://isoredirect.centos.org/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1708.iso
+  + Turn off SELinux `setstatus // setenforce 0`
+  + Turn off firewall `systemctl stop firewalld`
 - Log into to Centos 7 box via SSH
-- Install required packages 
+- Install required packages if needed (This step is only needed if we have to install a newer python version)
+  + Centos 7.x should come with python 2.7.5 
+  + With the next steps we would install python 2.7.14 which is not needed if 2.7.5 is installed 
 
 ```bash
 yum install python-devel libxml2-devel libxslt-devel gcc openssl libffi-devel wget curl
@@ -50,9 +56,11 @@ make altinstall
 ```bash
 git clone https://git.juniper.net/cklewar/bfs.git
 cd bfs
-pip2.7 install -r requirements.txt
+pip2.7 or pip install --upgrade -r requirements.txt
 ```
 - Edit `ui/config.yml` and change to settings to fit your environment
+
+One RR configuration is mandatory.
 
 ```yaml
 age_out_interval: 00:01:00
@@ -66,9 +74,11 @@ routers:
       type: asbr
       ip: 10.11.111.121
 ```
-- Start tool
+
+- Start bfs tool
   + Python binary should be in path if not use `which python2.7` to obtain path info
-  + Start UI with `python2.7 main.py`
+  + change directory to bfs root
+  + Start UI with `python2.7 main.py or python main.py`
 - Access WebUI URL `<IP>:8080`
 
 ## WebUI ##
