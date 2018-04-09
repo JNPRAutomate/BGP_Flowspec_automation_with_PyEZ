@@ -24,7 +24,6 @@ import hashlib
 import datetime
 import yaml
 import re
-import pprint
 
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
@@ -46,9 +45,9 @@ class MyDev(object):
 
     def addNewFlowRoute(self, flowRouteData=None):
 
-        # env = Environment(autoescape=False,
+        #env = Environment(autoescape=False,
         #                  loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
-        # template = env.get_template('set-flow-route.conf')
+        #template = env.get_template('set-flow-route.conf')
 
         with Device(host=self.routers[0]['rt1']['ip'], user=self.dev_user, password=self.dev_pw) as dev:
 
@@ -64,11 +63,11 @@ class MyDev(object):
             except ConfigLoadError as cle:
                 return False, cle.message
 
-        self.flow_config[flowRouteData['flowRouteName']] = {'dstPrefix': flowRouteData['dstPrefix'],
-                                                            'srcPrefix': flowRouteData['srcPrefix'],
-                                                            'protocol': flowRouteData['protocol'],
-                                                            'dstPort': flowRouteData['dstPort'],
-                                                            'srcPort': flowRouteData['srcPort'],
+        self.flow_config[flowRouteData['flowRouteName']] = {'dstPrefix': flowRouteData['dstPrefix'] if 'dstPrefix' in flowRouteData else None,
+                                                            'srcPrefix': flowRouteData['srcPrefix'] if 'srcPrefix' in flowRouteData else None,
+                                                            'protocol': flowRouteData['protocol'] if 'protocol' in flowRouteData else None,
+                                                            'dstPort': flowRouteData['dstPort'] if 'dstPort' in flowRouteData else None,
+                                                            'srcPort': flowRouteData['srcPort'] if 'srcPort' in flowRouteData else None,
                                                             'action': flowRouteData['action']}
         return True, 'Successfully added new flow route'
 
@@ -110,6 +109,7 @@ class MyDev(object):
     def getActiveFlowRoutes(self):
 
         t = datetime.datetime.strptime(self.age_out_interval, "%H:%M:%S")
+        self.flow_active = dict()
 
         for router in self.routers:
 
@@ -301,11 +301,14 @@ class MyDev(object):
                             else:
                                 _action[key] = {'value': None}
 
-                        self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'],
-                                                           'srcPrefix': route['match']['source'],
-                                                           'protocol': route['match']['protocol'],
-                                                           'dstPort': route['match']['destination-port'],
-                                                           'srcPort': route['match']['source-port'], 'action': _action}
+                        print route
+
+                        self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else '*',
+                                                           'srcPrefix': route['match']['source'] if 'source' in route['match'] else '*',
+                                                           'protocol': route['match']['protocol'] if 'protocol' in route['match'] else '*',
+                                                           'dstPort': route['match']['destination-port'] if 'destination-port' in route['match'] else '*',
+                                                           'srcPort': route['match']['source-port'] if 'source-port' in route['match'] else '*',
+                                                           'action': _action}
                     return True, self.flow_config
 
                 else:

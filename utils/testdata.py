@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
         testdata = dict()
         start = 1
-        stop = 2001
+        stop = 101
         step = 1
         protocol = ['tcp', 'udp']
         action = ['accept', 'discard', 'sample']
