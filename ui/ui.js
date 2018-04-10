@@ -20,7 +20,7 @@
 */
 
 var pollInterval = 5000;  // 1000 = 1 second, 3000 = 3 seconds
-var ageOutInterval = "00:03:00" //H:M:S
+var ageOutInterval = "0:03:00" //H:M:S
 
 $(document).ready(function () {
 
@@ -506,6 +506,7 @@ function saveSettingsBtnEventHandler(){
         data.password = $('#inputDevPassword').val();
         data.ip = $('#inputDevIP').val();
         data.age_out_interval = $('#inputAgeOutInterval').val();
+        ageOutInterval = $('#inputAgeOutInterval').val();
         pollInterval = $('#inputPollInterval').val();
 
         saveSettings(data);
