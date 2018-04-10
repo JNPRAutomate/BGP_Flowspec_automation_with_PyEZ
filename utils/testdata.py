@@ -18,6 +18,7 @@ if __name__ == '__main__':
         dev_user = config['dev_user']
         dev_pw = config['dev_pw']
         routers = config['routers']
+        communities = config['communities']
 
     my_router = None
     for router in routers:
@@ -34,7 +35,6 @@ if __name__ == '__main__':
         step = 1
         protocol = ['tcp', 'udp']
         action = ['accept', 'discard', 'sample', 'community']
-        communities = ['bgp_flow_arbor:1000:1666']
 
         for idx in range(start, stop, step):
             testdata['flowRoute' + str(idx)] = {
@@ -44,10 +44,8 @@ if __name__ == '__main__':
                                                         random.randint(1, 200)),
                 'protocol': protocol[random.randint(0, 1)], 'dstPort': '{0}'.format(random.randint(1, 9999)),
                 'srcPort': '{0}'.format(random.randint(1, 9999)),
-                'action': '{0} {1}'.format(action[3],communities[0]) if 'community' in action[
+                'action': '{0} {1}'.format(action[3],communities[random.randint(0, len(communities)-1)]) if 'community' in action[
                     random.randint(0, 3)] else action[random.randint(0, 2)]}
-
-        #pprint.pprint(testdata)
 
         env = Environment(autoescape=False,
                           loader=FileSystemLoader('../template'), trim_blocks=False, lstrip_blocks=False)
@@ -57,8 +55,6 @@ if __name__ == '__main__':
 
         for key, flow in testdata.iteritems():
             _template.write(template.render(flowRouteName=key, **flow))
-
-        #print _template.getvalue()
 
         try:
 

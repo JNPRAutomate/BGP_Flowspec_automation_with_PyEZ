@@ -1,6 +1,8 @@
 age_out_interval: 00:03:00
 dev_pw: juniper123
 dev_user: root
+communities:
+  - bgp_flow_arbor:1000:1666
 routers:
   - RR:
       type: rr
