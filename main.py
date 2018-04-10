@@ -28,7 +28,7 @@ import re
 from jinja2 import Environment, FileSystemLoader
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
-from jnpr.junos.exception import ConfigLoadError
+from jnpr.junos.exception import ConfigLoadError, CommitError
 from data.fr import FlowRoutesTable, FlowFilterTable
 
 
@@ -50,7 +50,7 @@ class MyDev(object):
                           loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
         template = env.get_template('set-flow-route.conf')
 
-        #print template.render(flowRouteData)
+        # print template.render(flowRouteData)
 
         my_router = None
         for router in self.routers:
@@ -92,18 +92,26 @@ class MyDev(object):
                     my_router = [value['ip']]
 
         with Device(host=my_router[0], user=self.dev_user, password=self.dev_pw) as dev:
-            cu = Config(dev)
-            cu.lock()
-            cu.load(template_path='template/mod-flow-route.conf', template_vars=flowRouteData)
-            cu.commit()
-            cu.unlock()
 
-        self.flow_config[flowRouteData['flowRouteName']] = {'dstPrefix': flowRouteData['dstPrefix'],
-                                                            'srcPrefix': flowRouteData['srcPrefix'],
-                                                            'protocol': flowRouteData['protocol'],
-                                                            'dstPort': flowRouteData['dstPort'],
-                                                            'srcPort': flowRouteData['srcPort'],
-                                                            'action': flowRouteData['action']}
+            try:
+                cu = Config(dev)
+                cu.lock()
+                cu.load(template_path='template/mod-flow-route.conf', template_vars=flowRouteData)
+                cu.commit()
+                cu.unlock()
+
+            except CommitError as ce:
+                return False, ce.message
+
+        self.flow_config[flowRouteData['flowRouteName']] = {
+            'dstPrefix': flowRouteData['dstPrefix'] if 'dstPrefix' in flowRouteData else None,
+            'srcPrefix': flowRouteData['srcPrefix'] if 'srcPrefix' in flowRouteData else None,
+            'protocol': flowRouteData['protocol'] if 'protocol' in flowRouteData else None,
+            'dstPort': flowRouteData['dstPort'] if 'dstPort' in flowRouteData else None,
+            'srcPort': flowRouteData['srcPort'] if 'srcPort' in flowRouteData else None,
+            'action': flowRouteData['action']}
+
+        return True, 'Successfully modified flow route'
 
     def delFlowRoute(self, flowRouteData=None):
 
@@ -183,16 +191,34 @@ class MyDev(object):
                         else:
                             krt_actions = _krt_actions[4]
 
-                        if isinstance(flow.action, str):
-                            if 'traffic-action' in flow.action:
-                                commAction = flow.action.split(":")[1].lstrip().strip()
+                        # Junos 14.1RX different XPATH for BGP communities
+                        version = dev.facts['version'].split('R')[0].split('.')
+
+                        if int(version[0]) <= 14 and int(version[1]) <= 1:
+
+                            if isinstance(flow.action_141, str):
+                                if 'traffic-action' in flow.action_141:
+                                    commAction = flow.action_141.split(":")[1].lstrip().strip()
+                                else:
+                                    commAction = flow.action_141
+
+                            elif isinstance(flow.action_141, list):
+                                commAction = flow.action_141[1].split(':')[1].lstrip().strip()
+                            else:
+                                commAction = flow.action_141
+
+                        else:
+
+                            if isinstance(flow.action, str):
+                                if 'traffic-action' in flow.action:
+                                    commAction = flow.action.split(":")[1].lstrip().strip()
+                                else:
+                                    commAction = flow.action
+
+                            elif isinstance(flow.action, list):
+                                commAction = flow.action[1].split(':')[1].lstrip().strip()
                             else:
                                 commAction = flow.action
-
-                        elif isinstance(flow.action, list):
-                            commAction = flow.action[1].split(':')[1].lstrip().strip()
-                        else:
-                            commAction = flow.action
 
                         if hex_dig not in self.flow_active:
 
@@ -327,12 +353,12 @@ class MyDev(object):
                                 _action[key] = {'value': None}
 
                         self.flow_config[route['name']] = {
-                            'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else '*',
-                            'srcPrefix': route['match']['source'] if 'source' in route['match'] else '*',
-                            'protocol': route['match']['protocol'] if 'protocol' in route['match'] else '*',
+                            'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else None,
+                            'srcPrefix': route['match']['source'] if 'source' in route['match'] else None,
+                            'protocol': route['match']['protocol'] if 'protocol' in route['match'] else None,
                             'dstPort': route['match']['destination-port'] if 'destination-port' in route[
-                                'match'] else '*',
-                            'srcPort': route['match']['source-port'] if 'source-port' in route['match'] else '*',
+                                'match'] else None,
+                            'srcPort': route['match']['source-port'] if 'source-port' in route['match'] else None,
                             'action': _action}
                     return True, self.flow_config
 
@@ -380,11 +406,9 @@ class BGPFlowWS(object):
     def GET(self, action=None):
 
         if action == 'active':
-            froutes = self.my_dev.getActiveFlowRoutes()
-            return True, froutes
+            data = self.my_dev.getActiveFlowRoutes()
 
-        else:
-            return False, 'Action unknown'
+            return data
 
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
@@ -394,13 +418,12 @@ class BGPFlowWS(object):
 
             input_json = cherrypy.request.json
             resp = self.my_dev.addNewFlowRoute(flowRouteData=input_json)
-
             return resp
 
         elif action == 'mod':
             input_json = cherrypy.request.json
-            self.my_dev.modFlowRoute(flowRouteData=input_json)
-            return True, 'Modified flow route'
+            resp = self.my_dev.modFlowRoute(flowRouteData=input_json)
+            return resp
 
         elif action == 'del':
             input_json = cherrypy.request.json

@@ -213,6 +213,9 @@ $(document).ready(function () {
                     });
                 });
                 return return_data;
+            },
+            "complete": function (response) {
+                getActiveFlowFilter(pollInterval);
             }
         },
         "columns": [
@@ -290,7 +293,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#selectAction').on('change', function(){
+    $('#selectAddNewFlowAction').on('change', function(){
         var selected = $(this).find("option:selected").val();
 
         if(selected === 'community'){
@@ -299,9 +302,9 @@ $(document).ready(function () {
                 $('#g_community').remove();
             }
 
-            var html = "<div id=\"g_community\"><label for=\"inputActionCommunity\" class=\"col-sm-2 col-form-label\">Community</label>" +
+            var html = "<div id=\"g_community\"><label for=\"inputAddNewActionCommunity\" class=\"col-sm-2 col-form-label\">Community</label>" +
                             "<div class=\"col-sm-4\">" +
-                                "<input type=\"text\" class=\"form-control\" id=\"inputActionCommunity\" placeholder=\"65000:667\">" +
+                                "<input type=\"text\" class=\"form-control\" id=\"inputAddNewActionCommunity\" placeholder=\"65000:667\">" +
                             "</div>" +
                        "</div>";
 
@@ -311,6 +314,31 @@ $(document).ready(function () {
 
             if ($('#g_community').length){
                 $('#g_community').remove();
+            }
+        }
+    });
+
+    $('#selectModFlowAction').on('change', function(){
+        var selected = $(this).find("option:selected").val();
+
+        if(selected === 'community'){
+
+            if ($('#g_mod_community').length){
+                $('#g_mod_community').remove();
+            }
+
+            var html = "<div id=\"g_mod_community\"><label for=\"inputModActionCommunity\" class=\"col-sm-2 col-form-label\">Community</label>" +
+                            "<div class=\"col-sm-4\">" +
+                                "<input type=\"text\" class=\"form-control\" id=\"inputModActionCommunity\" placeholder=\"65000:667\">" +
+                            "</div>" +
+                       "</div>";
+
+            $('#fg_mod_action').append(html);
+
+        } else {
+
+            if ($('#g_mod_community').length){
+                $('#g_mod_community').remove();
             }
         }
     });
@@ -339,11 +367,10 @@ function flowRouteAddNewConfigEventHandler(){
             data.protocol = $('#selectProtocol').val();
         }
 
-        data.action = $('#selectAction').val();
+        data.action = $('#selectAddNewFlowAction').val();
 
         if (data.action == 'community') {
-            data.action = 'community ' + $('#inputActionCommunity').val();
-            console.log(data.action);
+            data.action = 'community ' + $('#inputAddNewActionCommunity').val();
         }
         addNewFlowRouteConfig(data);
     });
@@ -356,12 +383,27 @@ function flowRouteModBtnEventHandler(){
         var data = new Object();
 
         data.flowRouteName = $('#inputModFlowRouteName').val();
-        data.srcPrefix = $('#inputModSrcPrefix').val();
-        data.srcPort = $('#inputModSrcPort').val();
-        data.dstPrefix = $('#inputModDstPrefix').val();
-        data.dstPort = $('#inputModDstPort').val();
-        data.protocol = $('#selectModProtocol').val();
-        data.action = $('#selectModAction').val();
+        if ($('#inputModSrcPrefix').val()){
+            data.srcPrefix = $('#inputModSrcPrefix').val();
+        }
+        if ($('#inputModSrcPort').val()){
+            data.srcPort = $('#inputModSrcPort').val();
+        }
+        if ($('#inputModDstPrefix').val()){
+            data.dstPrefix = $('#inputModDstPrefix').val();
+        }
+        if ($('#inputModDstPort').val()) {
+            data.dstPort = $('#inputModDstPort').val();
+        }
+        if ($('#selectModProtocol').val()) {
+            data.protocol = $('#selectModProtocol').val();
+        }
+        if ($('#selectModFlowAction').val()) {
+            data.action = $('#selectModFlowAction').val();
+        }
+        if (data.action == 'community') {
+            data.action = 'community ' + $('#inputModActionCommunity').val();
+        }
 
         modFlowRouteConfig(data);
     });
@@ -380,7 +422,32 @@ function flowRouteModModalBtnEventHandler(){
         $("#selectModProtocol").val(rowData.protocol);
         $("#inputModDstPort").val(rowData.dstPort);
         $("#inputModSrcPort").val(rowData.srcPort);
-        $("#selectModAction").val(rowData.action);
+
+        if (rowData.action[0][0] === 'community'){
+
+            if ($('#g_mod_community').length){
+                $('#g_mod_community').remove();
+            }
+
+            $("#selectModFlowAction").val(rowData.action[0][0]);
+            var html = "<div id=\"g_mod_community\"><label for=\"inputModActionCommunity\" class=\"col-sm-2 col-form-label\">Community</label>" +
+                            "<div class=\"col-sm-4\">" +
+                                "<input type=\"text\" class=\"form-control\" id=\"inputModActionCommunity\" placeholder=\"65000:667\">" +
+                            "</div>" +
+                       "</div>";
+
+            $('#fg_mod_action').append(html);
+            $("#inputModActionCommunity").val(rowData.action[0][1]);
+
+        } else {
+
+            if ($('#g_mod_community').length){
+                $('#g_mod_community').remove();
+                $("#selectModFlowAction").val(rowData.action[0][0]);
+            } else {
+                $("#selectModFlowAction").val(rowData.action[0][0]);
+            }
+        }
         $("#modalFlowMod").modal("toggle");
     });
 }
@@ -441,8 +508,6 @@ function modFlowRouteConfig(flowRouteData) {
         contentType: 'application/json',
         success: function (response) {
 
-            console.log(response);
-
             if (response[0]){
 
                 $("#t_flow_config").DataTable().ajax.reload();
@@ -498,6 +563,15 @@ function getActiveFlowRoutes(pollInterval){
 
     function poll() {
         var t = $('#t_active_flow').dataTable().api();
+        t.ajax.reload()
+    }
+    setTimeout(poll, pollInterval);
+}
+
+function getActiveFlowFilter(pollInterval){
+
+    function poll() {
+        var t = $('#t_active_filter').dataTable().api();
         t.ajax.reload()
     }
     setTimeout(poll, pollInterval);

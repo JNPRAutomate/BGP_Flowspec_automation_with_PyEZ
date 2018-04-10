@@ -23,5 +23,5 @@ FlowRoutesView:
   active: rt-entry/active-tag
   age: rt-entry/age
   action:  rt-entry/communities/community
-  #action: rt-entry/communities/extended-community
+  action_141: rt-entry/communities/extended-community
   tsi: tsi

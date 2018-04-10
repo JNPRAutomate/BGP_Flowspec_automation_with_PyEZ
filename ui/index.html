@@ -238,9 +238,9 @@
                         </div>
                     </div>
                     <div class="form-group row" id="fg_action">
-                        <label for="selectAction" class="col-sm-2 col-form-label">Action</label>
+                        <label for="selectAddNewFlowAction" class="col-sm-2 col-form-label">Action</label>
                         <div class="col-sm-3">
-                            <select class="form-control" id="selectAction">
+                            <select class="form-control" id="selectAddNewFlowAction">
                                 <option>accept</option>
                                 <option>discard</option>
                                 <option>sample</option>
@@ -261,7 +261,7 @@
 
 <!-- Modal -->
 <div id="modalFlowMod" class="modal fade" role="dialog">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
 
         <!-- Modal content-->
         <div class="modal-content">
@@ -272,38 +272,38 @@
             <div class="modal-body">
                 <form>
                     <div class="form-group row">
-                        <label for="inputFlowRouteName" class="col-sm-4 col-form-label">Flow Route Name</label>
-                        <div class="col-sm-6">
+                        <label for="inputFlowRouteName" class="col-sm-2 col-form-label">Flow Route Name</label>
+                        <div class="col-sm-4">
                             <input type="text" class="form-control" id="inputModFlowRouteName" readonly>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="inputSrcPrefix" class="col-sm-4 col-form-label">Source Prefix</label>
-                        <div class="col-sm-4">
+                        <label for="inputSrcPrefix" class="col-sm-2 col-form-label">Source Prefix</label>
+                        <div class="col-sm-3">
                             <input type="text" class="form-control" id="inputModSrcPrefix" placeholder="1.1.1.1/32">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="inputSrcPort" class="col-sm-4 col-form-label">Source Port</label>
-                        <div class="col-sm-4">
+                        <label for="inputSrcPort" class="col-sm-2 col-form-label">Source Port</label>
+                        <div class="col-sm-3">
                             <input type="text" class="form-control" id="inputModSrcPort" placeholder="8080">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="inputDstPrefix" class="col-sm-4 col-form-label">Destination Prefix</label>
-                        <div class="col-sm-4">
+                        <label for="inputDstPrefix" class="col-sm-2 col-form-label">Destination Prefix</label>
+                        <div class="col-sm-3">
                             <input type="text" class="form-control" id="inputModDstPrefix" placeholder="2.2.2.2/32">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="inputDstPort" class="col-sm-4 col-form-label">Destination Port</label>
-                        <div class="col-sm-4">
+                        <label for="inputDstPort" class="col-sm-2 col-form-label">Destination Port</label>
+                        <div class="col-sm-3">
                             <input type="text" class="form-control" id="inputModDstPort" placeholder="8080">
                         </div>
                     </div>
                     <div class="form-group row" id="fg_mod_protocol">
-                        <label for="selectProtocol" class="col-sm-4 col-form-label">Protocol</label>
-                        <div class="col-sm-4">
+                        <label for="selectProtocol" class="col-sm-2 col-form-label">Protocol</label>
+                        <div class="col-sm-3">
                             <select class="form-control" id="selectModProtocol">
                                 <option>tcp</option>
                                 <option>udp</option>
@@ -312,9 +312,9 @@
                         </div>
                     </div>
                     <div class="form-group row" id="fg_mod_action">
-                        <label for="selectAction" class="col-sm-4 col-form-label">Action</label>
-                        <div class="col-sm-4">
-                            <select class="form-control" id="selectModAction">
+                        <label for="selectModFlowAction" class="col-sm-2 col-form-label">Action</label>
+                        <div class="col-sm-3">
+                            <select class="form-control" id="selectModFlowAction">
                                 <option>accept</option>
                                 <option>discard</option>
                                 <option>sample</option>
@@ -322,7 +322,6 @@
                             </select>
                         </div>
                     </div>
-
                 </form>
             </div>
             <div class="modal-footer">
