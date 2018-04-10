@@ -2,9 +2,9 @@ age_out_interval: 00:03:00
 dev_pw: juniper123
 dev_user: root
 routers:
-  - rt1:
+  - RR:
       type: rr
       ip: 10.11.111.120
-  - rt2:
+  - PE:
       type: asbr
       ip: 10.11.111.121

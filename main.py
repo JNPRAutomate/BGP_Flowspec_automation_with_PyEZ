@@ -18,7 +18,7 @@
 #
 
 
-import os.path
+import os
 import cherrypy
 import hashlib
 import datetime
@@ -49,7 +49,14 @@ class MyDev(object):
         #                  loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
         #template = env.get_template('set-flow-route.conf')
 
-        with Device(host=self.routers[0]['rt1']['ip'], user=self.dev_user, password=self.dev_pw) as dev:
+        my_router = None
+        for router in self.routers:
+
+            for name, value in router.iteritems():
+                if 'rr' in value['type']:
+                    my_router = [value['ip']]
+
+        with Device(host=my_router[0], user=self.dev_user, password=self.dev_pw) as dev:
 
             try:
 
@@ -73,7 +80,14 @@ class MyDev(object):
 
     def modFlowRoute(self, flowRouteData=None):
 
-        with Device(host=self.routers[0]['rt1']['ip'], user=self.dev_user, password=self.dev_pw) as dev:
+        my_router = None
+        for router in self.routers:
+
+            for name, value in router.iteritems():
+                if 'rr' in value['type']:
+                    my_router = [value['ip']]
+
+        with Device(host=my_router[0], user=self.dev_user, password=self.dev_pw) as dev:
             cu = Config(dev)
             cu.lock()
             cu.load(template_path='template/mod-flow-route.conf', template_vars=flowRouteData)
@@ -89,7 +103,14 @@ class MyDev(object):
 
     def delFlowRoute(self, flowRouteData=None):
 
-        with Device(host=self.routers[0]['rt1']['ip'], user=self.dev_user, password=self.dev_pw) as dev:
+        my_router = None
+        for router in self.routers:
+
+            for name, value in router.iteritems():
+                if 'rr' in value['type']:
+                    my_router = [value['ip']]
+
+        with Device(host=my_router[0], user=self.dev_user, password=self.dev_pw) as dev:
 
             try:
 
@@ -278,7 +299,6 @@ class MyDev(object):
                             for child in item.iterchildren():
 
                                 for value in child.iter():
-                                    print value.tag, value.text
                                     _action[child.tag] = {'value': value.text}
 
                                 self.flow_config[my_list[0]]['action'] = _action
@@ -300,8 +320,6 @@ class MyDev(object):
                                 _action[key] = {'value': value}
                             else:
                                 _action[key] = {'value': None}
-
-                        print route
 
                         self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else '*',
                                                            'srcPrefix': route['match']['source'] if 'source' in route['match'] else '*',

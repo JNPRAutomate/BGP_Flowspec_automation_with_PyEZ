@@ -140,8 +140,6 @@ $(document).ready(function () {
 
                 if (data.age <= ageOutInterval) {
                     $(row).css( 'color', 'red' ).animate( { color: 'black' });
-
-
                 }
             },
             "columns": [
