@@ -25,6 +25,7 @@ import datetime
 import yaml
 import re
 
+from jinja2 import Environment, FileSystemLoader
 from jnpr.junos.utils.config import Config
 from jnpr.junos import Device
 from jnpr.junos.exception import ConfigLoadError
@@ -45,9 +46,11 @@ class MyDev(object):
 
     def addNewFlowRoute(self, flowRouteData=None):
 
-        #env = Environment(autoescape=False,
-        #                  loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
-        #template = env.get_template('set-flow-route.conf')
+        env = Environment(autoescape=False,
+                          loader=FileSystemLoader('./template'), trim_blocks=False, lstrip_blocks=False)
+        template = env.get_template('set-flow-route.conf')
+
+        #print template.render(flowRouteData)
 
         my_router = None
         for router in self.routers:
@@ -70,12 +73,13 @@ class MyDev(object):
             except ConfigLoadError as cle:
                 return False, cle.message
 
-        self.flow_config[flowRouteData['flowRouteName']] = {'dstPrefix': flowRouteData['dstPrefix'] if 'dstPrefix' in flowRouteData else None,
-                                                            'srcPrefix': flowRouteData['srcPrefix'] if 'srcPrefix' in flowRouteData else None,
-                                                            'protocol': flowRouteData['protocol'] if 'protocol' in flowRouteData else None,
-                                                            'dstPort': flowRouteData['dstPort'] if 'dstPort' in flowRouteData else None,
-                                                            'srcPort': flowRouteData['srcPort'] if 'srcPort' in flowRouteData else None,
-                                                            'action': flowRouteData['action']}
+        self.flow_config[flowRouteData['flowRouteName']] = {
+            'dstPrefix': flowRouteData['dstPrefix'] if 'dstPrefix' in flowRouteData else None,
+            'srcPrefix': flowRouteData['srcPrefix'] if 'srcPrefix' in flowRouteData else None,
+            'protocol': flowRouteData['protocol'] if 'protocol' in flowRouteData else None,
+            'dstPort': flowRouteData['dstPort'] if 'dstPort' in flowRouteData else None,
+            'srcPort': flowRouteData['srcPort'] if 'srcPort' in flowRouteData else None,
+            'action': flowRouteData['action']}
         return True, 'Successfully added new flow route'
 
     def modFlowRoute(self, flowRouteData=None):
@@ -156,18 +160,19 @@ class MyDev(object):
 
                         if len(flow.age) <= 2:
                             _age['current'] = datetime.timedelta(seconds=int(flow.age))
-                        elif len(flow.age) ==4 or len(flow.age) == 5:
+                        elif len(flow.age) == 4 or len(flow.age) == 5:
                             ms = flow.age.split(':')
                             _age['current'] = datetime.timedelta(minutes=int(ms[0]), seconds=int(ms[1]))
                         elif len(flow.age) == 7 or len(flow.age) == 8:
                             ms = flow.age.split(':')
-                            _age['current'] = datetime.timedelta(hours=int(ms[0]),minutes=int(ms[1]), seconds=int(ms[2]))
+                            _age['current'] = datetime.timedelta(hours=int(ms[0]), minutes=int(ms[1]),
+                                                                 seconds=int(ms[2]))
                         else:
                             pattern = r'(.*)\s(.*?):(.*?):(.*)'
                             regex = re.compile(pattern)
                             age = re.findall(regex, flow.age)
                             _age['current'] = datetime.timedelta(days=int(age[0][0][:-1]), hours=int(age[0][1]),
-                                                                     minutes=int(age[0][2]), seconds=int(age[0][3]))
+                                                                 minutes=int(age[0][2]), seconds=int(age[0][3]))
 
                         pattern = r'([^\s]+)'
                         regex = re.compile(pattern)
@@ -182,12 +187,12 @@ class MyDev(object):
                             if 'traffic-action' in flow.action:
                                 commAction = flow.action.split(":")[1].lstrip().strip()
                             else:
-                                commAction = None
+                                commAction = flow.action
 
                         elif isinstance(flow.action, list):
                             commAction = flow.action[1].split(':')[1].lstrip().strip()
                         else:
-                            commAction = None
+                            commAction = flow.action
 
                         if hex_dig not in self.flow_active:
 
@@ -321,12 +326,14 @@ class MyDev(object):
                             else:
                                 _action[key] = {'value': None}
 
-                        self.flow_config[route['name']] = {'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else '*',
-                                                           'srcPrefix': route['match']['source'] if 'source' in route['match'] else '*',
-                                                           'protocol': route['match']['protocol'] if 'protocol' in route['match'] else '*',
-                                                           'dstPort': route['match']['destination-port'] if 'destination-port' in route['match'] else '*',
-                                                           'srcPort': route['match']['source-port'] if 'source-port' in route['match'] else '*',
-                                                           'action': _action}
+                        self.flow_config[route['name']] = {
+                            'dstPrefix': route['match']['destination'] if 'destination' in route['match'] else '*',
+                            'srcPrefix': route['match']['source'] if 'source' in route['match'] else '*',
+                            'protocol': route['match']['protocol'] if 'protocol' in route['match'] else '*',
+                            'dstPort': route['match']['destination-port'] if 'destination-port' in route[
+                                'match'] else '*',
+                            'srcPort': route['match']['source-port'] if 'source-port' in route['match'] else '*',
+                            'action': _action}
                     return True, self.flow_config
 
                 else:
@@ -337,7 +344,7 @@ class MyDev(object):
         self.dev_user = dev_user
         self.dev_pw = dev_pw
         self.age_out_interval = age_out_interval
-        #self.routers = routers
+        # self.routers = routers
 
         # with open('ui/config.yml', 'w') as fp:
         #    config = {'dev_user': self.dev_user, 'dev_pw': self.dev_pw, 'routers': self.routers,

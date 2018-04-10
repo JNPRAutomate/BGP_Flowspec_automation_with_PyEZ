@@ -55,7 +55,7 @@ $(document).ready(function () {
                             action_val.push([action]);
 
                         } else {
-                            action_val.push([action, value]);
+                            action_val.push([action, value['value']]);
                         }
                      });
 
@@ -299,9 +299,9 @@ $(document).ready(function () {
                 $('#g_community').remove();
             }
 
-            var html = "<div id=\"g_community\"><label for=\"inputDstPort\" class=\"col-sm-2 col-form-label\">Community</label>" +
-                            "<div class=\"col-sm-3\">" +
-                                "<input type=\"text\" class=\"form-control\" id=\"inputActionCommunity\" placeholder=\"My BGP Community\">" +
+            var html = "<div id=\"g_community\"><label for=\"inputActionCommunity\" class=\"col-sm-2 col-form-label\">Community</label>" +
+                            "<div class=\"col-sm-4\">" +
+                                "<input type=\"text\" class=\"form-control\" id=\"inputActionCommunity\" placeholder=\"65000:667\">" +
                             "</div>" +
                        "</div>";
 
@@ -336,6 +336,11 @@ function flowRouteAddNewConfigEventHandler(){
         }
 
         data.action = $('#selectAction').val();
+
+        if (data.action == 'community') {
+            data.action = 'community ' + $('#inputActionCommunity').val();
+            console.log(data.action);
+        }
         addNewFlowRouteConfig(data);
     });
 }

@@ -22,5 +22,6 @@ FlowRoutesView:
   term: rt-prefix-length
   active: rt-entry/active-tag
   age: rt-entry/age
-  action: rt-entry/communities/extended-community
+  action:  rt-entry/communities/community
+  #action: rt-entry/communities/extended-community
   tsi: tsi

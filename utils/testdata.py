@@ -1,5 +1,6 @@
 import random
 import StringIO
+import yaml
 import pprint
 
 from jinja2 import Environment, FileSystemLoader
@@ -11,25 +12,42 @@ if __name__ == '__main__':
 
     print 'Generate static BGP Flow Spec test data on RR device'
 
-    with Device(host='10.11.111.120', user='root', password='juniper123') as dev:
+    with open('../ui/config.yml', 'r') as fp:
+        _config = fp.read()
+        config = yaml.safe_load(_config)
+        dev_user = config['dev_user']
+        dev_pw = config['dev_pw']
+        routers = config['routers']
+
+    my_router = None
+    for router in routers:
+
+        for name, value in router.iteritems():
+            if 'rr' in value['type']:
+                my_router = [value['ip']]
+
+    with Device(host=my_router[0], user=dev_user, password=dev_pw) as dev:
 
         testdata = dict()
         start = 1
-        stop = 101
+        stop = 1001
         step = 1
         protocol = ['tcp', 'udp']
-        action = ['accept', 'discard', 'sample']
+        action = ['accept', 'discard', 'sample', 'community']
+        communities = ['bgp_flow_arbor:1000:1666']
 
         for idx in range(start, stop, step):
             testdata['flowRoute' + str(idx)] = {
-                'dstPrefix': '10.{0}.{1}.{2}/32'.format(random.randint(1, 100), random.randint(1, 100),
-                                                        random.randint(1, 100)),
-                'srcPrefix': '10.{0}.{1}.{2}/32'.format(random.randint(1, 100), random.randint(1, 100),
-                                                        random.randint(1, 100)),
+                'dstPrefix': '10.{0}.{1}.{2}/32'.format(random.randint(1, 200), random.randint(1, 200),
+                                                        random.randint(1, 200)),
+                'srcPrefix': '10.{0}.{1}.{2}/32'.format(random.randint(1, 200), random.randint(1, 200),
+                                                        random.randint(1, 200)),
                 'protocol': protocol[random.randint(0, 1)], 'dstPort': '{0}'.format(random.randint(1, 9999)),
-                'srcPort': '{0}'.format(random.randint(1, 9999)), 'action': action[random.randint(0, 2)]}
+                'srcPort': '{0}'.format(random.randint(1, 9999)),
+                'action': '{0} {1}'.format(action[3],communities[0]) if 'community' in action[
+                    random.randint(0, 3)] else action[random.randint(0, 2)]}
 
-        # pprint.pprint(testdata)
+        #pprint.pprint(testdata)
 
         env = Environment(autoescape=False,
                           loader=FileSystemLoader('../template'), trim_blocks=False, lstrip_blocks=False)
@@ -40,16 +58,17 @@ if __name__ == '__main__':
         for key, flow in testdata.iteritems():
             _template.write(template.render(flowRouteName=key, **flow))
 
+        #print _template.getvalue()
+
         try:
 
             cu = Config(dev)
             cu.lock()
-
             cu.load(_template.getvalue(), format='text', merge=True)
             cu.commit()
             cu.unlock()
 
         except ConfigLoadError as cle:
             print cle.message
-
+        
         _template.close()
