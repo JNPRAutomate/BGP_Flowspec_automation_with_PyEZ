@@ -325,13 +325,17 @@ function flowRouteAddNewConfigEventHandler(){
 
         if ($('#inputSrcPrefix').val()){
             data.srcPrefix = $('#inputSrcPrefix').val();
-        } else if ($('#inputSrcPort').val()){
+        }
+        if ($('#inputSrcPort').val()){
             data.srcPort = $('#inputSrcPort').val();
-        } else if ($('#inputDstPrefix').val()){
+        }
+        if ($('#inputDstPrefix').val()){
             data.dstPrefix = $('#inputDstPrefix').val();
-        } else if ($('#inputDstPort').val()) {
+        }
+        if ($('#inputDstPort').val()) {
             data.dstPort = $('#inputDstPort').val();
-        } else if ($('#selectProtocol').val()) {
+        }
+        if ($('#selectProtocol').val()) {
             data.protocol = $('#selectProtocol').val();
         }
 
