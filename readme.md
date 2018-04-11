@@ -2,15 +2,27 @@
 
 
 ## Overview ##
-This tool is to demo flow route creation / modification / deletion during PoC.
-Features
+In case we have to demonstrate our capabilities automating BGP FlowSpec data handling on a route reflector `BFS` can be used for.
 
-- Flow Route actions
+### Use Cases ###
+- Automate handling of flow route data on the route reflector or external flow route source
+- Automate generating flow route test data on route reflector
+
+### Features ###
+
+- Flow route actions on route reflector
   + Add new flow route
   + Modify flow route
   + Delete flow route
-- Display current flow routes in configuration
-- Display current active flow routes in inetflow.0 table
+
+- Flow route viewer
+  + retrieve flow route information from RR / PE / ASBR / etc.
+
+- Interact with external flow route source like Arbor APS
+  + send change request to flow route source
+
+- Test data generator
+  + Generate static flow route entries on route reflector to demonstrate scale / functionality
 
 ## Requirements ##
 
