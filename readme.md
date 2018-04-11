@@ -70,9 +70,12 @@ git clone https://git.juniper.net/cklewar/bfs.git
 cd bfs
 pip2.7 or pip install --upgrade -r requirements.txt
 ```
-- Edit `ui/config.yml` and change to settings to fit your environment
 
-One RR configuration is mandatory.
+## Configuration ##
+We need to add some information about RR and / or the edge router by editing `ui/config.yml` file and change the
+settings to fit your environment.
+
+__At least one router of type RR has to be configured__
 
 ```yaml
 age_out_interval: 00:01:00
