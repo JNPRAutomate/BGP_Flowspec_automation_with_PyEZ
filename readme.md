@@ -100,13 +100,13 @@ routers:
 
 ![Screen_Shot_2018-04-11_at_11.25.39](resources/Screen_Shot_2018-04-11_at_11.25.39.png)
 
-![Screen_Shot_2018-04-11_at_11.26.18](/uploads/947d4ccd19c25e641dec4db29c0baab6/Screen_Shot_2018-04-11_at_11.26.18.png)
+![Screen_Shot_2018-04-11_at_11.26.18](resources/Screen_Shot_2018-04-11_at_11.26.18.png)
 
-![Screen_Shot_2018-04-11_at_11.26.31](/uploads/c45d7ac851328b76562dc5c09356aa9d/Screen_Shot_2018-04-11_at_11.26.31.png)
+![Screen_Shot_2018-04-11_at_11.26.31](resources/Screen_Shot_2018-04-11_at_11.26.31.png)
 
-![Screen_Shot_2018-04-11_at_11.26.42](/uploads/041a730956370aecc7661443ea01d636/Screen_Shot_2018-04-11_at_11.26.42.png)
+![Screen_Shot_2018-04-11_at_11.26.42](resources/Screen_Shot_2018-04-11_at_11.26.42.png)
 
-![Screen_Shot_2018-04-11_at_11.26.53](/uploads/5ce8568b284dca5f0de6dc38564a66e1/Screen_Shot_2018-04-11_at_11.26.53.png)
+![Screen_Shot_2018-04-11_at_11.26.53](resources/Screen_Shot_2018-04-11_at_11.26.53.png)
 
 
 
