@@ -66,8 +66,8 @@ make altinstall
   + pip2.7 should be directly available if not use `which pip2.7` to obtain the path to binary
 
 ```bash
-git clone https://git.juniper.net/cklewar/bfs.git
-cd bfs
+git clone https://github.com/JNPRAutomate/BGP_Flowspec_automation_with_PyEZ.git
+cd BGP_Flowspec_automation_with_PyEZ
 pip2.7 or pip install --upgrade -r requirements.txt
 ```
 
@@ -98,7 +98,7 @@ routers:
 
 ## WebUI ##
 
-![Screen_Shot_2018-04-11_at_11.25.39](/uploads/98a7c849299a199daaf128ca109fd02a/Screen_Shot_2018-04-11_at_11.25.39.png)
+![Screen_Shot_2018-04-11_at_11.25.39](resources/Screen_Shot_2018-04-11_at_11.25.39.png)
 
 ![Screen_Shot_2018-04-11_at_11.26.18](/uploads/947d4ccd19c25e641dec4db29c0baab6/Screen_Shot_2018-04-11_at_11.26.18.png)
 
